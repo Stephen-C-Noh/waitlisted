@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Luxe Table Concierge | Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-error-container": "#ffdad6",
+                        "surface-dim": "#131313",
+                        "primary-fixed": "#ffdea5",
+                        "inverse-primary": "#775a19",
+                        "on-secondary": "#392f1c",
+                        "inverse-on-surface": "#313030",
+                        "primary-fixed-dim": "#e9c176",
+                        "inverse-surface": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#504531",
+                        "on-secondary-fixed": "#221a09",
+                        "tertiary-fixed": "#d4e8d4",
+                        "outline": "#9a8f80",
+                        "tertiary-fixed-dim": "#b8ccb8",
+                        "on-tertiary-fixed-variant": "#3a4b3c",
+                        "surface": "#131313",
+                        "tertiary": "#b8ccb8",
+                        "surface-bright": "#393939",
+                        "on-background": "#e5e2e1",
+                        "secondary-fixed": "#f1e1c4",
+                        "secondary": "#d4c5a9",
+                        "error": "#ffb4ab",
+                        "surface-container-highest": "#353535",
+                        "primary": "#e9c176",
+                        "on-primary-container": "#4e3700",
+                        "on-surface-variant": "#d1c5b4",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "background": "#131313",
+                        "tertiary-container": "#97aa98",
+                        "surface-container-low": "#1c1b1b",
+                        "on-tertiary-container": "#2e3f31",
+                        "surface-tint": "#e9c176",
+                        "error-container": "#93000a",
+                        "on-tertiary": "#243427",
+                        "on-primary-fixed": "#261900",
+                        "on-tertiary-fixed": "#0f1f13",
+                        "secondary-fixed-dim": "#d4c5a9",
+                        "secondary-container": "#524833",
+                        "outline-variant": "#4e4639",
+                        "on-primary": "#412d00",
+                        "surface-container": "#20201f",
+                        "on-surface": "#e5e2e1",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5d4201",
+                        "surface-variant": "#353535"
+                    },
+                    fontFamily: {
+                        "headline": ["Noto Serif"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(32, 32, 31, 0.8);
+            backdrop-filter: blur(12px);
+        }
+        .primary-gradient-btn {
+            background: linear-gradient(45deg, #e9c176, #c5a059);
+        }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<nav class="bg-[#131313] dark:bg-[#131313] docked full-width top-0 z-50 no-border tonal-shift bg-neutral-900/50 backdrop-blur-md sticky">
+<div class="flex justify-between items-center w-full px-8 py-6 max-w-full mx-auto font-['Noto_Serif'] antialiased tracking-wide">
+<div class="text-2xl font-serif tracking-widest text-[#e9c176] uppercase">LUXE TABLE</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Waitlist</a>
+<a class="text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Pre-Order</a>
+<a class="text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Status</a>
+<a class="text-[#e9c176] border-b border-[#e9c176]/30 pb-1" href="#">Admin</a>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden lg:flex items-center gap-3 border-r border-outline-variant/30 pr-6 mr-2">
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface leading-tight">Admin User</p>
+<p class="text-[10px] uppercase tracking-widest text-primary leading-tight">Admin</p>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center text-primary border border-primary/20">
+<span class="material-symbols-outlined text-sm">person</span>
+</div>
+</div>
+<button class="primary-gradient-btn text-on-primary px-6 py-2 rounded-lg font-bold transition-transform active:scale-95">Join Waitlist</button>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-8 py-12">
+<!-- Dashboard Header & Metrics -->
+<header class="mb-12">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+<div>
+<h1 class="text-4xl font-headline font-bold text-on-surface mb-2">Concierge Overview</h1>
+<div class="flex items-center gap-4">
+<p class="text-on-surface-variant font-body tracking-wider uppercase text-sm">Real-time floor management</p>
+<span class="h-4 w-px bg-outline-variant/30"></span>
+<p class="text-on-surface-variant font-body text-xs flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">badge</span>
+Staff Online: <span class="text-on-surface font-semibold">Manager One, Server One</span>
+</p>
+</div>
+</div>
+<!-- Metric Cards: Bento Style -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-auto">
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/15">
+<p class="text-xs font-label uppercase text-on-surface-variant tracking-widest mb-1">Total on List</p>
+<p class="text-3xl font-headline text-primary">12</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/15">
+<p class="text-xs font-label uppercase text-on-surface-variant tracking-widest mb-1">Average Wait</p>
+<p class="text-3xl font-headline text-on-surface">20<span class="text-lg">m</span></p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/15">
+<p class="text-xs font-label uppercase text-on-surface-variant tracking-widest mb-1">Available Tables</p>
+<div class="flex items-center gap-2">
+<p class="text-3xl font-headline text-tertiary">15</p>
+<span class="flex h-2 w-2 rounded-full bg-tertiary animate-pulse"></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tab Navigation -->
+<div class="flex justify-between items-center border-b border-outline-variant/15 pb-4">
+<div class="flex gap-8">
+<button class="text-primary font-label text-sm uppercase tracking-widest relative">
+                    Active Queue
+                    <span class="absolute -bottom-4 left-0 w-full h-0.5 bg-primary"></span>
+</button>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors font-label text-sm uppercase tracking-widest">
+                    Seated
+                </button>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors font-label text-sm uppercase tracking-widest">
+                    Cancelled
+                </button>
+</div>
+<div class="flex gap-4">
+<div class="flex p-1 bg-surface-container rounded-lg border border-outline-variant/20">
+<button class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-md bg-surface-container-highest text-on-surface">All Zones</button>
+<button class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-md text-on-surface-variant hover:text-on-surface">Main Dining</button>
+<button class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-md text-on-surface-variant hover:text-on-surface">Patio</button>
+<button class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-md text-on-surface-variant hover:text-on-surface">Bar</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Waitlist Table Section -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden shadow-2xl">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container text-on-surface-variant uppercase text-[10px] tracking-[0.2em] font-label">
+<th class="px-8 py-5 font-semibold">Pos</th>
+<th class="px-8 py-5 font-semibold">Guest Details</th>
+<th class="px-8 py-5 font-semibold">Party</th>
+<th class="px-8 py-5 font-semibold">Wait Time</th>
+<th class="px-8 py-5 font-semibold">Preferred Zone</th>
+<th class="px-8 py-5 font-semibold text-center">Pre-Order</th>
+<th class="px-8 py-5 font-semibold text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Guest Row 1 -->
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-8 py-6">
+<span class="text-xl font-headline text-on-surface-variant/50">#1</span>
+</td>
+<td class="px-8 py-6">
+<div class="flex flex-col">
+<span class="text-lg font-headline font-bold text-on-surface">Julianne Moore</span>
+<span class="text-xs font-label text-on-surface-variant">+1 212-555-0198</span>
+</div>
+</td>
+<td class="px-8 py-6 font-body text-on-surface">4 Guests</td>
+<td class="px-8 py-6">
+<div class="flex flex-col">
+<span class="text-on-surface font-semibold">45m</span>
+<span class="text-[10px] uppercase tracking-tighter text-error">Delayed</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex flex-col gap-1">
+<span class="bg-primary-container/20 text-primary px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest w-fit">Main Dining</span>
+<span class="text-[10px] text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">table_bar</span> T03, T04, T05</span>
+</div>
+</td>
+<td class="px-8 py-6 text-center">
+<button class="inline-flex items-center gap-2 text-primary hover:text-primary-fixed transition-colors font-label text-xs uppercase tracking-widest border border-primary/20 px-4 py-2 rounded-lg">
+<span class="material-symbols-outlined text-sm">restaurant_menu</span>
+                                    View Order
+                                </button>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end gap-3">
+<button class="p-2 hover:bg-tertiary/10 text-tertiary rounded-lg transition-colors group/seat" title="Seat Guest (Server: Server One)">
+<span class="material-symbols-outlined">event_seat</span>
+</button>
+<button class="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors" title="Notify Guest">
+<span class="material-symbols-outlined">notifications_active</span>
+</button>
+<button class="p-2 hover:bg-error/10 text-error rounded-lg transition-colors" title="Remove">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Guest Row 2 -->
+<tr class="group hover:bg-surface-container-high transition-colors">
+<td class="px-8 py-6">
+<span class="text-xl font-headline text-on-surface-variant/50">#2</span>
+</td>
+<td class="px-8 py-6">
+<div class="flex flex-col">
+<span class="text-lg font-headline font-bold text-on-surface">Alistair Sterling</span>
+<span class="text-xs font-label text-on-surface-variant">+1 212-555-0142</span>
+</div>
+</td>
+<td class="px-8 py-6 font-body text-on-surface">2 Guests</td>
+<td class="px-8 py-6">
+<div class="flex flex-col">
+<span class="text-on-surface font-semibold">12m</span>
+<span class="text-[10px] uppercase tracking-tighter text-tertiary">On Track</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex flex-col gap-1">
+<span class="bg-secondary-container/20 text-on-secondary-container px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest w-fit">Bar</span>
+<span class="text-[10px] text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">table_bar</span> B01, B02</span>
+</div>
+</td>
+<td class="px-8 py-6 text-center text-on-surface-variant/40 italic font-label text-xs">
+                                No Pre-Order
+                            </td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end gap-3">
+<button class="p-2 hover:bg-tertiary/10 text-tertiary rounded-lg transition-colors" title="Seat Guest (Server: Server Two)">
+<span class="material-symbols-outlined">event_seat</span>
+</button>
+<button class="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors" title="Notify Guest">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 hover:bg-error/10 text-error rounded-lg transition-colors" title="Remove">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Guest Row 3 -->
+<tr class="group hover:bg-surface-container-high transition-colors bg-primary/5">
+<td class="px-8 py-6">
+<span class="text-xl font-headline text-on-surface-variant/50">#3</span>
+</td>
+<td class="px-8 py-6">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="text-lg font-headline font-bold text-on-surface">Elena Rodriguez</span>
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">stars</span>
+</div>
+<span class="text-xs font-label text-on-surface-variant">+1 212-555-0777</span>
+</div>
+</td>
+<td class="px-8 py-6 font-body text-on-surface">6 Guests</td>
+<td class="px-8 py-6">
+<div class="flex flex-col">
+<span class="text-on-surface font-semibold">5m</span>
+<span class="text-[10px] uppercase tracking-tighter text-tertiary">Ready Soon</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="bg-tertiary/20 text-tertiary px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest w-fit">Patio</span>
+<span class="flex h-1.5 w-1.5 rounded-full bg-tertiary animate-ping"></span>
+</div>
+<span class="text-[10px] text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">table_bar</span> P04</span>
+</div>
+</td>
+<td class="px-8 py-6 text-center">
+<button class="inline-flex items-center gap-2 text-primary hover:text-primary-fixed transition-colors font-label text-xs uppercase tracking-widest border border-primary/20 px-4 py-2 rounded-lg">
+<span class="material-symbols-outlined text-sm">restaurant_menu</span>
+                                    View Order
+                                </button>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end gap-3">
+<button class="p-2 hover:bg-tertiary/10 text-tertiary rounded-lg transition-colors" title="Seat Guest (Manager One)">
+<span class="material-symbols-outlined">event_seat</span>
+</button>
+<button class="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors" title="Notify Guest">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 hover:bg-error/10 text-error rounded-lg transition-colors" title="Remove">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="mt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-on-surface-variant font-label text-xs uppercase tracking-[0.2em]">Showing 3 of 12 active entries across 3 zones (Main Dining, Patio, Bar)</p>
+<div class="flex gap-4">
+<button class="px-6 py-3 border border-outline-variant/30 rounded-lg font-label text-xs uppercase tracking-widest hover:bg-surface-container-high transition-colors">
+                    Export Log
+                </button>
+<button class="px-6 py-3 primary-gradient-btn text-on-primary rounded-lg font-bold font-label text-xs uppercase tracking-widest shadow-lg shadow-primary/10 transition-transform active:scale-95">
+                    + Add Guest
+                </button>
+</div>
+</div>
+</main>
+<!-- Footer Component -->
+<footer class="w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-6 bg-[#131313] full-width border-t border-[#e5e2e1]/10 mt-20">
+<div class="text-lg font-serif text-[#e9c176]">LUXE TABLE CONCIERGE</div>
+<div class="flex gap-8">
+<a class="text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors font-['Manrope'] text-[12px] tracking-[0.2em] uppercase" href="#">Contact</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors font-['Manrope'] text-[12px] tracking-[0.2em] uppercase" href="#">Location</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors font-['Manrope'] text-[12px] tracking-[0.2em] uppercase" href="#">Privacy</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors font-['Manrope'] text-[12px] tracking-[0.2em] uppercase" href="#">Terms</a>
+</div>
+<div class="text-[#e5e2e1]/40 font-['Manrope'] text-[10px] tracking-[0.1em] uppercase">
+            © 2024 LUXE TABLE CONCIERGE. ALL RIGHTS RESERVED.
+        </div>
+</footer>
+</body></html>

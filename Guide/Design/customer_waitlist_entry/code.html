@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-error-container": "#ffdad6",
+              "surface-dim": "#131313",
+              "primary-fixed": "#ffdea5",
+              "inverse-primary": "#775a19",
+              "on-secondary": "#392f1c",
+              "inverse-on-surface": "#313030",
+              "primary-fixed-dim": "#e9c176",
+              "inverse-surface": "#e5e2e1",
+              "on-secondary-fixed-variant": "#504531",
+              "on-secondary-fixed": "#221a09",
+              "tertiary-fixed": "#d4e8d4",
+              "outline": "#9a8f80",
+              "tertiary-fixed-dim": "#b8ccb8",
+              "on-tertiary-fixed-variant": "#3a4b3c",
+              "surface": "#131313",
+              "tertiary": "#b8ccb8",
+              "surface-bright": "#393939",
+              "on-background": "#e5e2e1",
+              "secondary-fixed": "#f1e1c4",
+              "secondary": "#d4c5a9",
+              "error": "#ffb4ab",
+              "surface-container-highest": "#353535",
+              "primary": "#e9c176",
+              "on-primary-container": "#4e3700",
+              "on-surface-variant": "#d1c5b4",
+              "surface-container-high": "#2a2a2a",
+              "surface-container-lowest": "#0e0e0e",
+              "background": "#131313",
+              "tertiary-container": "#97aa98",
+              "surface-container-low": "#1c1b1b",
+              "on-tertiary-container": "#2e3f31",
+              "surface-tint": "#e9c176",
+              "error-container": "#93000a",
+              "on-tertiary": "#243427",
+              "on-primary-fixed": "#261900",
+              "on-tertiary-fixed": "#0f1f13",
+              "secondary-fixed-dim": "#d4c5a9",
+              "secondary-container": "#524833",
+              "outline-variant": "#4e4639",
+              "on-primary": "#412d00",
+              "surface-container": "#20201f",
+              "on-secondary-container": "#c6b79c",
+              "primary-container": "#c5a059",
+              "on-surface": "#e5e2e1",
+              "on-error": "#690005",
+              "on-primary-fixed-variant": "#5d4201",
+              "surface-variant": "#353535"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+            font-family: 'Manrope', sans-serif;
+        }
+        .font-serif { font-family: 'Noto Serif', serif; }
+        .bg-gold-gradient {
+            background: linear-gradient(45deg, #e9c176, #c5a059);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-primary/30">
+<!-- TopNavBar -->
+<nav class="bg-[#131313] dark:bg-[#131313] docked full-width top-0 z-50 no-border tonal-shift bg-neutral-900/50 backdrop-blur-md shadow-none flex justify-between items-center w-full px-8 py-6 max-w-full mx-auto">
+<div class="text-2xl font-serif tracking-widest text-[#e9c176] uppercase">LUXE TABLE</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-['Noto_Serif'] antialiased tracking-wide text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Waitlist</a>
+<a class="font-['Noto_Serif'] antialiased tracking-wide text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Pre-Order</a>
+<a class="font-['Noto_Serif'] antialiased tracking-wide text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Status</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden sm:block text-[#e5e2e1]/60 font-['Manrope'] text-sm tracking-widest uppercase hover:text-[#e9c176] transition-colors">Admin</button>
+<button class="bg-[#e9c176] text-[#412d00] px-6 py-2 rounded-full font-['Manrope'] font-bold text-xs tracking-widest uppercase hover:bg-white/5 transition-all duration-300">Join Waitlist</button>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow flex items-center justify-center px-6 py-12 md:py-24 relative overflow-hidden">
+<!-- Ambient Background Element -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="w-full max-w-2xl z-10">
+<!-- Header Section -->
+<div class="text-center mb-12">
+<h1 class="font-serif text-4xl md:text-6xl text-on-surface mb-4 tracking-tight">The Evening Awaits</h1>
+<p class="font-body text-on-surface-variant text-lg max-w-md mx-auto leading-relaxed">Secure your place in our dining room. We will notify you via SMS the moment your table is prepared.</p>
+</div>
+<!-- Wait Time Indicator -->
+<div class="bg-surface-container-low rounded-xl p-6 mb-8 flex items-center justify-between border border-outline-variant/10">
+<div class="flex items-center gap-4">
+<div class="w-3 h-3 bg-tertiary rounded-full animate-pulse shadow-[0_0_15px_rgba(184,204,184,0.4)]"></div>
+<span class="font-label text-sm uppercase tracking-[0.2em] text-on-surface-variant">Live Status</span>
+</div>
+<div class="text-right">
+<p class="font-label text-[10px] uppercase tracking-[0.15em] text-on-surface-variant mb-1">Current Wait</p>
+<p class="font-serif text-2xl text-primary">25-30 minutes</p>
+</div>
+</div>
+<!-- Waitlist Form Card -->
+<div class="bg-surface-container-high rounded-xl p-8 md:p-12 shadow-2xl relative border border-outline-variant/5">
+<form class="space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Name Field -->
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant ml-1">Guest Name</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-4 text-on-surface focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all outline-none font-body" placeholder="e.g. Julian Vane" type="text"/>
+</div>
+<!-- Party Size -->
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant ml-1">Party Size</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-4 text-on-surface focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all outline-none font-body appearance-none">
+<option>2 Guests</option>
+<option>3 Guests</option>
+<option>4 Guests</option>
+<option>5-6 Guests</option>
+<option>7+ Guests</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Phone Number -->
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant ml-1">Phone Number (SMS Notifications)</label>
+<div class="flex gap-4">
+<div class="w-24 shrink-0 relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-4 text-on-surface focus:ring-1 focus:ring-primary/50 transition-all outline-none font-body appearance-none">
+<option>+1</option>
+<option>+44</option>
+<option>+33</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-sm" data-icon="expand_more">expand_more</span>
+</div>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-4 text-on-surface focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all outline-none font-body" placeholder="(555) 000-0000" type="tel"/>
+</div>
+</div>
+<!-- Notes -->
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant ml-1">Special Occasion or Preferences</label>
+<textarea class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-4 text-on-surface focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all outline-none font-body resize-none" placeholder="Allergies, seating preferences, or special requests..." rows="3"></textarea>
+</div>
+<!-- Submit Button -->
+<div class="pt-4">
+<button class="w-full bg-gold-gradient text-on-primary font-body font-bold text-sm tracking-[0.2em] uppercase py-5 rounded-lg hover:shadow-[0_10px_30px_rgba(233,193,118,0.2)] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3" type="submit">
+                            Confirm Position
+                            <span class="material-symbols-outlined text-xl" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<p class="text-center mt-6 font-label text-[10px] text-on-surface-variant uppercase tracking-widest opacity-60">
+                            By joining, you agree to receive automated SMS updates regarding your table.
+                        </p>
+</div>
+</form>
+</div>
+<!-- Featured Image or Background Detail -->
+<div class="mt-16 grid grid-cols-3 gap-4 opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
+<div class="aspect-[4/5] bg-surface-container-low rounded-lg overflow-hidden">
+<img alt="Interior Detail" class="w-full h-full object-cover" data-alt="Close-up of a perfectly set dining table in a dimly lit high-end restaurant with crystal glassware and soft candlelight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBOl0ZJW6p1FWPeebJ8AnkMcv-O5YApYmboUEFbXjnbURnOMkW8KFxjifZL6-RrC_SisiHyR4CWQkHaay__YW65mPseS8NcRz95dIsnNLBJGi3_N6Pr7azCKomjtl9jwHmjcgy1LmIA9n20E7WC006LqgGyyG2dESUm0TmbrIuxxDdZ9i9LbqpUNhNGmtoOREas7ZPZFBhX0f2V6bva_sgg7hCrcwlasKdIrtjRND8JVcN4l7F7-5MO4rsOrc-hzywcHlFinTxZ48Y"/>
+</div>
+<div class="aspect-[4/5] bg-surface-container-low rounded-lg overflow-hidden mt-4">
+<img alt="Cocktail Detail" class="w-full h-full object-cover" data-alt="Elegant amber cocktail in a crystal coupe glass being served on a dark textured bar counter with dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuQQaAfHHj3lVNLKjwxXCf2PelSRpRcX3PHpmaiGPzdmEPXBlARxK7RIFbXw5UbkwluGwTdAgJ6VIEJEj4PHGn7sSpC6_h64A1s3_8jvEHEYm4ItNsFAsbFpwXMStf0lh1aOgQbwKaJFeFd69Wm3rEDl7zg-Ml-kdPHM6dzzooYeYmqLXkQnrI92npf4n2RaNyZXm6K4Zx-9fcb-LCmhp7FAVwX35lh5SNfaj5lSoHUiPT9dRgt0-grbxuvmX1ZUDOySC_RdhnhyNe"/>
+</div>
+<div class="aspect-[4/5] bg-surface-container-low rounded-lg overflow-hidden">
+<img alt="Chef Detail" class="w-full h-full object-cover" data-alt="A chef meticulously plating a gourmet dish with precision tweezers in a moody high-end kitchen setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfXz7SJteEHsdBv232gaHnYOmJfZcwEA7GGzSm1-8T9OUDlioA3aDtb3RbrdbKOia7iZS51vtS6o2zNw-xsfOhans8gxczbWuP8YFgVqbckK2x_nzoj8N92rmsU7NqB9RaI6MBAaX94izQwGrnIyykxbaTG89VsQl2IeEreq22t9Q24x-Hf1DS277xPUTeiSsQoFOyCHMsHXvHHCnLAxee0zCFm1X2gus1xxEJUw3PY7WskIXKZFmba5TudcbqqtX3yi9QC57DQNiO"/>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-[#131313] dark:bg-[#131313] full-width border-t border-[#e5e2e1]/10 tonal-nesting bg-neutral-950 flat no-shadows w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="text-lg font-serif text-[#e9c176]">LUXE TABLE</div>
+<div class="flex gap-8">
+<a class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Contact</a>
+<a class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Location</a>
+<a class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Privacy</a>
+<a class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Terms</a>
+</div>
+<div class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40">
+            © 2024 LUXE TABLE CONCIERGE. ALL RIGHTS RESERVED.
+        </div>
+</footer>
+</body></html>

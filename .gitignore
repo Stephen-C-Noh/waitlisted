@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# editors
+.vscode/
+.idea/
+
+# WSL / NTFS metadata
+*:Zone.Identifier
+
+# scratch
+.stash/
+
+/src/generated/prisma

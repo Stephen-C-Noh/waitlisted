@@ -1,0 +1,279 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model flyway_schema_history {
+  installed_rank Int      @id(map: "flyway_schema_history_pk")
+  version        String?  @db.VarChar(50)
+  description    String   @db.VarChar(200)
+  type           String   @db.VarChar(20)
+  script         String   @db.VarChar(1000)
+  checksum       Int?
+  installed_by   String   @db.VarChar(100)
+  installed_on   DateTime @default(now()) @db.Timestamp(6)
+  execution_time Int
+  success        Boolean
+
+  @@index([success], map: "flyway_schema_history_s_idx")
+}
+
+model idempotency_records {
+  idempotency_key String    @id @db.VarChar(36)
+  resource_type   String    @db.VarChar(50)
+  resource_id     String    @db.Uuid
+  response_body   Json?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  expires_at      DateTime  @db.Timestamp(6)
+
+  @@index([expires_at], map: "idx_idempotency_expires")
+}
+
+model menu_categories {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String       @db.VarChar(100)
+  display_order Int
+  active        Boolean?     @default(true)
+  created_at    DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?    @default(now()) @db.Timestamp(6)
+  menu_items    menu_items[]
+}
+
+model menu_item_modifiers {
+  menu_item_id   String     @db.Uuid
+  modifier_id    String     @db.Uuid
+  max_selections Int?       @default(1)
+  required       Boolean?   @default(false)
+  menu_items     menu_items @relation(fields: [menu_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  modifiers      modifiers  @relation(fields: [modifier_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([menu_item_id, modifier_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model menu_items {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category_id         String                @db.Uuid
+  name                String                @db.VarChar(100)
+  description         String?
+  sku                 String?               @unique @db.VarChar(50)
+  base_price          Decimal               @db.Decimal(10, 2)
+  tax_rate            Decimal?              @default(0.05) @db.Decimal(5, 4)
+  prep_time_minutes   Int?                  @default(10)
+  active              Boolean?              @default(true)
+  image_url           String?               @db.VarChar(500)
+  created_at          DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?             @default(now()) @db.Timestamp(6)
+  kitchen_section     String                @default("GRILL") @db.VarChar(20)
+  menu_item_modifiers menu_item_modifiers[]
+  menu_categories     menu_categories       @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order_items         order_items[]
+
+  @@index([active], map: "idx_menu_items_active")
+  @@index([category_id], map: "idx_menu_items_category")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model modifiers {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String                 @db.VarChar(100)
+  modifier_type        String?                @db.VarChar(20)
+  price_delta          Decimal?               @default(0.00) @db.Decimal(10, 2)
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  menu_item_modifiers  menu_item_modifiers[]
+  order_item_modifiers order_item_modifiers[]
+}
+
+model order_item_modifiers {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_item_id String      @db.Uuid
+  modifier_id   String      @db.Uuid
+  price_delta   Decimal?    @default(0.00) @db.Decimal(10, 2)
+  modifiers     modifiers   @relation(fields: [modifier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order_items   order_items @relation(fields: [order_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model order_items {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id             String                 @db.Uuid
+  menu_item_id         String                 @db.Uuid
+  quantity             Int
+  unit_price           Decimal                @db.Decimal(10, 2)
+  subtotal             Decimal                @db.Decimal(10, 2)
+  special_instructions String?
+  status               String?                @default("PENDING") @db.VarChar(20)
+  course_number        Int?                   @default(1)
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  order_item_modifiers order_item_modifiers[]
+  menu_items           menu_items             @relation(fields: [menu_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orders               orders                 @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([order_id], map: "idx_order_items_order")
+  @@index([status], map: "idx_order_items_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model orders {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_number     String        @unique @db.VarChar(20)
+  order_type       String        @db.VarChar(20)
+  status           String        @default("DRAFT") @db.VarChar(20)
+  table_id         String?       @db.Uuid
+  server_id        String?       @db.Uuid
+  guest_count      Int?
+  subtotal         Decimal?      @default(0.00) @db.Decimal(10, 2)
+  tax_amount       Decimal?      @default(0.00) @db.Decimal(10, 2)
+  tip_amount       Decimal?      @default(0.00) @db.Decimal(10, 2)
+  total            Decimal?      @default(0.00) @db.Decimal(10, 2)
+  notes            String?
+  fired_at         DateTime?     @db.Timestamp(6)
+  completed_at     DateTime?     @db.Timestamp(6)
+  created_at       DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?     @default(now()) @db.Timestamp(6)
+  version          Int?          @default(1)
+  idempotency_key  String?       @unique @db.VarChar(36)
+  client_timestamp DateTime?     @db.Timestamp(6)
+  sync_status      String?       @default("SYNCED") @db.VarChar(20)
+  order_items      order_items[]
+  users            users?        @relation(fields: [server_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tables           tables?       @relation(fields: [table_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  payments         payments[]
+
+  @@index([created_at], map: "idx_orders_created_at")
+  @@index([idempotency_key], map: "idx_orders_idempotency", where: raw("(idempotency_key IS NOT NULL)"))
+  @@index([order_number], map: "idx_orders_order_number")
+  @@index([status], map: "idx_orders_status")
+  @@index([table_id], map: "idx_orders_table")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model outbox_events {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  aggregate_type String    @db.VarChar(50)
+  aggregate_id   String    @db.VarChar(100)
+  event_type     String    @db.VarChar(100)
+  payload        Json
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  processed_at   DateTime? @db.Timestamp(6)
+  status         String?   @default("PENDING") @db.VarChar(20)
+
+  @@index([aggregate_type, aggregate_id], map: "idx_outbox_aggregate")
+  @@index([status, created_at], map: "idx_outbox_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payments {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id          String    @db.Uuid
+  payment_intent_id String?   @unique @db.VarChar(100)
+  payment_method    String?   @db.VarChar(20)
+  amount            Decimal   @db.Decimal(10, 2)
+  status            String?   @default("PENDING") @db.VarChar(20)
+  gateway_reference String?   @db.VarChar(100)
+  gateway_response  Json?
+  captured_at       DateTime? @db.Timestamp(6)
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  idempotency_key   String?   @unique @db.VarChar(36)
+  orders            orders    @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([idempotency_key], map: "idx_payments_idempotency", where: raw("(idempotency_key IS NOT NULL)"))
+  @@index([payment_intent_id], map: "idx_payments_intent")
+  @@index([order_id], map: "idx_payments_order")
+  @@index([status], map: "idx_payments_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model tables {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  table_number      String    @unique @db.VarChar(10)
+  capacity          Int
+  zone              String?   @db.VarChar(50)
+  status            String?   @default("AVAILABLE") @db.VarChar(20)
+  current_server_id String?   @db.Uuid
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  updated_at        DateTime? @default(now()) @db.Timestamp(6)
+  orders            orders[]
+  users             users?    @relation(fields: [current_server_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([status], map: "idx_tables_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username      String    @unique @db.VarChar(50)
+  password_hash String    @db.VarChar(255)
+  full_name     String    @db.VarChar(100)
+  role          String    @db.VarChar(20)
+  pin_hash      String?   @db.VarChar(255)
+  status        String?   @default("ACTIVE") @db.VarChar(20)
+  last_login_at DateTime? @db.Timestamp(6)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+  orders        orders[]
+  tables        tables[]
+
+  @@index([role], map: "idx_users_role")
+  @@index([username], map: "idx_users_username")
+}
+
+// ---------------------------------------------------------------------------
+// Waitlisted-owned tables (managed by Prisma, not Flyway)
+// ---------------------------------------------------------------------------
+
+model waitlist_entries {
+  id                     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  guest_name             String     @db.VarChar(100)
+  party_size             Int
+  phone_number           String     @db.VarChar(20)
+  notes                  String?
+  status                 String     @default("WAITING") @db.VarChar(20)
+  access_token           String     @unique @db.VarChar(64)
+  estimated_wait_minutes Int?
+  preferred_zone         String?    @db.VarChar(50)
+  queue_position         Int?
+  notified_at            DateTime?  @db.Timestamp(6)
+  seated_at              DateTime?  @db.Timestamp(6)
+  seated_table_id        String?    @db.Uuid
+  seated_by_user_id      String?    @db.Uuid
+  created_at             DateTime   @default(now()) @db.Timestamp(6)
+  updated_at             DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+  pre_order              pre_orders?
+
+  @@index([status])
+  @@index([created_at])
+}
+
+model pre_orders {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  waitlist_entry_id  String             @unique @db.Uuid
+  status             String             @default("DRAFT") @db.VarChar(20)
+  subtotal           Decimal            @default(0.00) @db.Decimal(10, 2)
+  fired_order_id     String?            @db.Uuid
+  fired_by_user_id   String?            @db.Uuid
+  created_at         DateTime           @default(now()) @db.Timestamp(6)
+  updated_at         DateTime           @default(now()) @updatedAt @db.Timestamp(6)
+  waitlist_entry     waitlist_entries   @relation(fields: [waitlist_entry_id], references: [id], onDelete: Cascade)
+  items              pre_order_items[]
+
+  @@index([status])
+}
+
+model pre_order_items {
+  id                    String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pre_order_id          String     @db.Uuid
+  menu_item_id          String     @db.Uuid
+  quantity              Int        @default(1)
+  special_instructions  String?
+  unit_price            Decimal    @db.Decimal(10, 2)
+  created_at            DateTime   @default(now()) @db.Timestamp(6)
+  pre_order             pre_orders @relation(fields: [pre_order_id], references: [id], onDelete: Cascade)
+
+  @@index([pre_order_id])
+}

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#2e3f31",
+              "tertiary": "#b8ccb8",
+              "secondary": "#d4c5a9",
+              "surface-dim": "#131313",
+              "inverse-surface": "#e5e2e1",
+              "surface-container-low": "#1c1b1b",
+              "on-surface-variant": "#d1c5b4",
+              "primary-fixed": "#ffdea5",
+              "inverse-on-surface": "#313030",
+              "primary": "#e9c176",
+              "on-tertiary-fixed-variant": "#3a4b3c",
+              "primary-container": "#c5a059",
+              "on-secondary-fixed": "#221a09",
+              "tertiary-fixed": "#d4e8d4",
+              "primary-fixed-dim": "#e9c176",
+              "outline-variant": "#4e4639",
+              "outline": "#9a8f80",
+              "tertiary-container": "#97aa98",
+              "on-tertiary": "#243427",
+              "secondary-fixed": "#f1e1c4",
+              "on-error": "#690005",
+              "on-tertiary-fixed": "#0f1f13",
+              "surface-container-highest": "#353535",
+              "surface-container": "#20201f",
+              "inverse-primary": "#775a19",
+              "on-secondary-fixed-variant": "#504531",
+              "error": "#ffb4ab",
+              "on-primary": "#412d00",
+              "on-background": "#e5e2e1",
+              "on-primary-container": "#4e3700",
+              "secondary-container": "#524833",
+              "on-primary-fixed": "#261900",
+              "on-error-container": "#ffdad6",
+              "surface-bright": "#393939",
+              "error-container": "#93000a",
+              "surface-tint": "#e9c176",
+              "tertiary-fixed-dim": "#b8ccb8",
+              "surface-container-high": "#2a2a2a",
+              "secondary-fixed-dim": "#d4c5a9",
+              "on-secondary-container": "#c6b79c",
+              "on-surface": "#e5e2e1",
+              "on-secondary": "#392f1c",
+              "surface": "#131313",
+              "on-primary-fixed-variant": "#5d4201",
+              "background": "#131313",
+              "surface-variant": "#353535",
+              "surface-container-lowest": "#0e0e0e"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .editorial-gradient {
+            background: linear-gradient(45deg, #e9c176, #c5a059);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 antialiased">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-neutral-900/50 backdrop-blur-md border-none">
+<nav class="flex justify-between items-center w-full px-8 py-6 max-w-full mx-auto font-['Noto_Serif'] antialiased tracking-wide">
+<div class="text-2xl font-serif tracking-widest text-[#e9c176] uppercase">LUXE TABLE</div>
+<div class="hidden md:flex items-center space-x-12">
+<a class="text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Waitlist</a>
+<a class="text-[#e9c176] border-b border-[#e9c176]/30 pb-1" href="#">Pre-Order</a>
+<a class="text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Status</a>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors font-label tracking-widest uppercase text-xs">Admin</button>
+<button class="bg-[#e9c176] text-[#412d00] px-6 py-2 rounded-full font-label font-bold tracking-wider text-xs uppercase hover:opacity-90 transition-all">Join Waitlist</button>
+</div>
+</nav>
+</header>
+<main class="pt-32 pb-24 px-8 max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Sidebar Navigation (Categories) -->
+<aside class="lg:col-span-2 space-y-12">
+<div class="sticky top-40">
+<h2 class="font-headline text-3xl mb-8 leading-tight">Pre-Order<br/><span class="text-primary italic">Menu</span></h2>
+<ul class="space-y-6">
+<li>
+<a class="flex items-center gap-4 group" href="#appetizers">
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(233,193,118,0.5)]"></span>
+<span class="font-label tracking-[0.2em] uppercase text-sm text-primary">Appetizers</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-4 group" href="#mains">
+<span class="w-2 h-2 rounded-full bg-transparent border border-outline-variant group-hover:border-primary transition-colors"></span>
+<span class="font-label tracking-[0.2em] uppercase text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Mains</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-4 group" href="#desserts">
+<span class="w-2 h-2 rounded-full bg-transparent border border-outline-variant group-hover:border-primary transition-colors"></span>
+<span class="font-label tracking-[0.2em] uppercase text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Desserts</span>
+</a>
+</li>
+</ul>
+</div>
+</aside>
+<!-- Menu Grid -->
+<section class="lg:col-span-7 space-y-24">
+<!-- Appetizers Section -->
+<div class="space-y-12 scroll-mt-40" id="appetizers">
+<div class="flex items-center gap-6">
+<h2 class="font-headline text-2xl tracking-wider uppercase text-primary/80">Appetizers</h2>
+<div class="h-[1px] flex-grow bg-outline-variant/30"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Spinach Artichoke Dip -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:bg-surface-container transition-all duration-500 flex flex-col">
+<div class="relative h-64 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="creamy spinach artichoke dip in a cast iron skillet with golden bubbles and warm pita bread" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmID_R7zmlWvaxrCtYBTD1j0DRAce1rohAkK3sa_Ys3_4gSL2v_fdwP3tq2elgcMNN8EMxn1rubcBm4VmPR71syNJS3GAI446hQewf3CIPxqX0SmO7sGkfoqDELY-5kL4W19c24YCZiNYJgw6f6p0PInY8Tk7BgOIHBOn-nuxc4LQ649PplKWPHZpM1sTsrZyeQLYFEoUgyz7SqcoXmi4KiVs6gBz497WvlOYfQKgDqhfqBjbj_rYv10hcTVQxglqnS5pDgaR9Pa7J"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent opacity-40"></div>
+</div>
+<div class="p-8 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline text-xl text-on-surface">Spinach Artichoke Dip</h3>
+<span class="font-body text-primary text-lg">$10.99</span>
+</div>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed mb-8 flex-grow">
+                                Creamy roasted garlic and artichoke blend, melted parmesan crust, served with warm house-made tortilla chips.
+                            </p>
+<button class="w-full border border-outline-variant/30 py-4 font-label tracking-widest text-xs uppercase hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-lg group/btn flex items-center justify-center gap-2">
+                                Add to List
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+</button>
+</div>
+</div>
+<!-- French Onion Soup -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:bg-surface-container transition-all duration-500 flex flex-col">
+<div class="relative h-64 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="classic french onion soup with melted gruyere cheese bubbling over the sides of a ceramic bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATTbrvRWrMBCOJWVrek2ppujqoeqRGkzKGbUGjnzOvZl_exJGbaw5YcOwrU-F4gBf-l4FqT1vyp38xZ4pov_YyOSGFOz2K7409kKH8WNmL0_L-G6CD9a2Hh2A4LkZhhFPaWsNkzsLpXoEaJLJ33_4Fi-VpTRncuZOxL50pNHOhQ6Bk_M0umf-qWyuFNGqVGOP7jm3UqeGOysn-UrLBRuAAhOrfu24iC7ybeMbNOk8UFdZ1YaF4x7p_UxalfqrQO3veqC7IGJm4as0z"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent opacity-40"></div>
+</div>
+<div class="p-8 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline text-xl text-on-surface">French Onion Soup</h3>
+<span class="font-body text-primary text-lg">$8.99</span>
+</div>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed mb-8 flex-grow">
+                                Slow-caramelized onions in a rich beef bone broth, topped with a sourdough crouton and aged gruyère.
+                            </p>
+<button class="w-full border border-outline-variant/30 py-4 font-label tracking-widest text-xs uppercase hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-lg group/btn flex items-center justify-center gap-2">
+                                Add to List
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Mains Section -->
+<div class="space-y-12 scroll-mt-40" id="mains">
+<div class="flex items-center gap-6">
+<h2 class="font-headline text-2xl tracking-wider uppercase text-primary/80">Mains</h2>
+<div class="h-[1px] flex-grow bg-outline-variant/30"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Grilled Ribeye -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:bg-surface-container transition-all duration-500 flex flex-col">
+<div class="relative h-64 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="close-up of a perfectly seared ribeye steak with a sprig of rosemary on a dark slate plate with dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQHTOiWH9Ya7ctMwC08ab7eHCdQMXKHrKScgyDXI0-OY5WAJCclST5irlov-u6RYgHjvRRjIJO2UKvsFlCMs0qJhiBC23hSoZ1GvgdMh91tIChhR-WkYJIwEWB4ry5Nxnd6Zk58SAoDFpEA4-6uLYmLJ3FlWraz5892EjXYDm9iUOws8g8-sTf6gxEq2g8cxYOERiQrsF5XohJCudVbKjt6OZ8Z8njuGxypvUSSUNl8v5tc7wZQIoMNbnkSXgV0BQ4Fz651AHzgjmq"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent opacity-40"></div>
+</div>
+<div class="p-8 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline text-xl text-on-surface">Grilled Ribeye Steak</h3>
+<span class="font-body text-primary text-lg">$32.99</span>
+</div>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed mb-8 flex-grow">
+                                12oz USDA Prime ribeye, hand-selected and grilled to perfection, topped with house-made herb butter.
+                            </p>
+<button class="w-full border border-outline-variant/30 py-4 font-label tracking-widest text-xs uppercase hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-lg group/btn flex items-center justify-center gap-2">
+                                Add to List
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+</button>
+</div>
+</div>
+<!-- Classic Burger -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:bg-surface-container transition-all duration-500 flex flex-col">
+<div class="relative h-64 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="gourmet artisan burger with melted aged cheddar and caramelized onions on a brioche bun, editorial food photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDC0de7SbS_KpwqmZycX7LJqx0zZ7-KXkPeahRnlWcJr1Y2J0f3W7fGoxwursV9NY0AMZSRBxDGF_FZJF7EZUGWRDh-CES-3BF_ctUFlvRQPJ8eCamRuC--qEEqzHsJWN5n6s-ZEiEWS1yl4u-5EFNRV0a6bPpxgCotwrM0RETOOI1a7JyiJ4yG7CAIVMlNZmElBzHLZLRV8t7Ae6kNjzRbieEOfd-wKkmzJNpyuWn1xkxi6znqchJDzaXobFeOyi_NPM8MSVaC-POw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent opacity-40"></div>
+</div>
+<div class="p-8 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline text-xl text-on-surface">Classic Burger</h3>
+<span class="font-body text-primary text-lg">$12.99</span>
+</div>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed mb-8 flex-grow">
+                                Premium beef blend, crisp lettuce, vine-ripened tomato, aged cheddar, and house pickles on brioche.
+                            </p>
+<button class="w-full border border-outline-variant/30 py-4 font-label tracking-widest text-xs uppercase hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-lg group/btn flex items-center justify-center gap-2">
+                                Add to List
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+</button>
+</div>
+</div>
+<!-- Shrimp Scampi -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:bg-surface-container transition-all duration-500 flex flex-col">
+<div class="relative h-64 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="garlic butter shrimp scampi with fresh parsley and lemon wedges over a bed of linguine" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdkwSuM_n0N7JhTsmWTBuxRcfp2-2mgUBjqyqHE1AqZLzoD0a-lfP-Y8iqsvBRYkAEo7I2nEtqsmp2Kxl21ZNsIMDq8c360HLy5wMTtJXLX3oFALKdynx-NqHoN_i6YQkh34tHcMdlOJCisSkD8nRNjbW3ZBON14ACtXpTm007D0RPdEpuNTYNYUZdMZZJuVpB5-KmXnsvco5_GADTyJdF8WzQTKWr36Kj1nEZHGhtZbkQtZ3VdoSd_sOMR2mqpuBYQoOOUj0LvqEK"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent opacity-40"></div>
+</div>
+<div class="p-8 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline text-xl text-on-surface">Shrimp Scampi</h3>
+<span class="font-body text-primary text-lg">$22.99</span>
+</div>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed mb-8 flex-grow">
+                                Jumbo shrimp sautéed in a delicate garlic butter and white wine sauce, served over fresh linguine.
+                            </p>
+<button class="w-full border border-outline-variant/30 py-4 font-label tracking-widest text-xs uppercase hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-lg group/btn flex items-center justify-center gap-2">
+                                Add to List
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+</button>
+</div>
+</div>
+<!-- Margherita Pizza -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:bg-surface-container transition-all duration-500 flex flex-col">
+<div class="relative h-64 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="rustic margherita pizza with fresh basil leaves and melted buffalo mozzarella, wood-fired crust" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8q8XGPC6iTEubqXYPYXm_oBRlCi7Io5pQWMtSIo50vK6GKWwpWFn-xtYLvFdYbACHXtePrrghGL7j-LR01gPBv4uAKD0d2zKmqVydXSPE1whQGOnZZFek0rjxrGeb6J1m2-zK79rn1EV-C7VslHwpA4i-4KSbmzGErmTFqcHGqRSovu82xBB9DPT9ndBmWGIVLj8LezzaOlg83i-tDBEC-eN2lnX8GpFhrlagLQRpaz6ibHVqNgAn-Ys7WN9Khal5kgfBGJW4EmzP"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent opacity-40"></div>
+</div>
+<div class="p-8 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline text-xl text-on-surface">Margherita Pizza</h3>
+<span class="font-body text-primary text-lg">$14.99</span>
+</div>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed mb-8 flex-grow">
+                                Hand-stretched dough, San Marzano tomato sauce, fresh buffalo mozzarella, and aromatic basil.
+                            </p>
+<button class="w-full border border-outline-variant/30 py-4 font-label tracking-widest text-xs uppercase hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-lg group/btn flex items-center justify-center gap-2">
+                                Add to List
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Desserts Section -->
+<div class="space-y-12 scroll-mt-40" id="desserts">
+<div class="flex items-center gap-6">
+<h2 class="font-headline text-2xl tracking-wider uppercase text-primary/80">Desserts</h2>
+<div class="h-[1px] flex-grow bg-outline-variant/30"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Chocolate Lava Cake -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:bg-surface-container transition-all duration-500 flex flex-col">
+<div class="relative h-64 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="warm chocolate lava cake with molten center and a scoop of vanilla bean ice cream" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVegvCiQ8aqf6Fzol9_hi_jtfK_8Kj8fa68y21lVLD7dz8FPA-XQQVqhXAZR7IP-O-VHFbO_D-YevbipMKBp-1iBK49_SoNpn58ikObGZlKTLffLFixvlm8zZ-yauAEfI7JwH_WpoiCQBS4xtFwNFEhX0zLbBHRRiUpoO7hdA5Rc3KbhurNhH7MsoFzzLTUszty8nLjXVCt6XlSCEhFCAAoO0P4Gyj7hT-UosXm-Wq4EnvaDNJ01ZwO_qHGEPob61UpqMKAagNPD_O"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent opacity-40"></div>
+</div>
+<div class="p-8 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline text-xl text-on-surface">Chocolate Lava Cake</h3>
+<span class="font-body text-primary text-lg">$9.99</span>
+</div>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed mb-8 flex-grow">
+                                Warm dark chocolate cake with a molten center, served with Madagascan vanilla bean ice cream.
+                            </p>
+<button class="w-full border border-outline-variant/30 py-4 font-label tracking-widest text-xs uppercase hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-lg group/btn flex items-center justify-center gap-2">
+                                Add to List
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+</button>
+</div>
+</div>
+<!-- New York Cheesecake -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:bg-surface-container transition-all duration-500 flex flex-col">
+<div class="relative h-64 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="classic new york cheesecake with a vibrant red berry compote topping" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgY2p02V2euSWxdw2-aM7quJown9fE8wEDcxJL-OT1E3cOHlOkXJySvs8JZjgP8IGRh2P9NNDh6nT_3XYqePVsoY56rUY8OvDy9eOP9sLlVMyAH0wRfPUAcR1A8IkizwGuUMfpaGJkW9EQ-XDjohZcaCnZ6LZ3julCgt1p0R_Dl70FqnwGA9jlz9jIWm9zF9ga3RwzKKw9Xq73pV-kEbQG3ojDat0B691hSEHD6ZCRAKvbtuqiEKphsb7VmsuUJnKORT0ImkePTqSf"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent opacity-40"></div>
+</div>
+<div class="p-8 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline text-xl text-on-surface">New York Cheesecake</h3>
+<span class="font-body text-primary text-lg">$8.99</span>
+</div>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed mb-8 flex-grow">
+                                Velvety smooth classic cheesecake on a buttery graham cracker crust with a wild berry compote.
+                            </p>
+<button class="w-full border border-outline-variant/30 py-4 font-label tracking-widest text-xs uppercase hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-lg group/btn flex items-center justify-center gap-2">
+                                Add to List
+                                <span class="material-symbols-outlined text-sm">add_circle</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Selection Summary Sidebar -->
+<aside class="lg:col-span-3">
+<div class="sticky top-40 bg-surface-container-high p-8 rounded-xl shadow-2xl space-y-8">
+<div class="flex items-center justify-between border-b border-outline-variant/20 pb-6">
+<h3 class="font-headline text-xl">Your List</h3>
+<span class="font-label text-xs bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-tighter">3 Items</span>
+</div>
+<div class="space-y-6">
+<!-- Selected Item Row -->
+<div class="flex justify-between items-center group">
+<div>
+<p class="font-body text-sm font-semibold">Grilled Ribeye Steak</p>
+<p class="font-body text-xs text-on-surface-variant">$32.99</p>
+</div>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+<div class="flex justify-between items-center group">
+<div>
+<p class="font-body text-sm font-semibold">Classic Burger</p>
+<p class="font-body text-xs text-on-surface-variant">$12.99</p>
+</div>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+</div>
+<div class="pt-8 space-y-6">
+<div class="flex justify-between items-center font-headline text-lg">
+<span>Estimated Total</span>
+<span class="text-primary">$45.98</span>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-lg border border-primary/10">
+<div class="flex gap-4 items-start">
+<span class="material-symbols-outlined text-primary" data-weight="fill">info</span>
+<p class="font-body text-xs leading-relaxed text-on-surface-variant italic">
+                                Your host will review and fire this order once you are seated.
+                            </p>
+</div>
+</div>
+<button class="editorial-gradient w-full py-5 rounded-lg text-on-primary font-label font-bold uppercase tracking-[0.2em] text-xs shadow-lg shadow-primary/10 hover:opacity-90 transition-all">
+                        Confirm Selection
+                    </button>
+</div>
+</div>
+</aside>
+</main>
+<!-- Footer Anchor -->
+<footer class="w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-6 bg-[#131313] border-t border-[#e5e2e1]/10">
+<div class="text-lg font-serif text-[#e9c176]">LUXE TABLE</div>
+<p class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40">© 2024 LUXE TABLE CONCIERGE. ALL RIGHTS RESERVED.</p>
+<div class="flex gap-8">
+<a class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Contact</a>
+<a class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Location</a>
+<a class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Privacy</a>
+<a class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Terms</a>
+</div>
+</footer>
+</body></html>

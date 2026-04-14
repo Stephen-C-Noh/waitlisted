@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-error-container": "#ffdad6",
+            "surface-dim": "#131313",
+            "primary-fixed": "#ffdea5",
+            "inverse-primary": "#775a19",
+            "on-secondary": "#392f1c",
+            "inverse-on-surface": "#313030",
+            "primary-fixed-dim": "#e9c176",
+            "inverse-surface": "#e5e2e1",
+            "on-secondary-fixed-variant": "#504531",
+            "on-secondary-fixed": "#221a09",
+            "tertiary-fixed": "#d4e8d4",
+            "outline": "#9a8f80",
+            "tertiary-fixed-dim": "#b8ccb8",
+            "on-tertiary-fixed-variant": "#3a4b3c",
+            "surface": "#131313",
+            "tertiary": "#b8ccb8",
+            "surface-bright": "#393939",
+            "on-background": "#e5e2e1",
+            "secondary-fixed": "#f1e1c4",
+            "secondary": "#d4c5a9",
+            "error": "#ffb4ab",
+            "surface-container-highest": "#353535",
+            "primary": "#e9c176",
+            "on-primary-container": "#4e3700",
+            "on-surface-variant": "#d1c5b4",
+            "surface-container-high": "#2a2a2a",
+            "surface-container-lowest": "#0e0e0e",
+            "background": "#131313",
+            "tertiary-container": "#97aa98",
+            "surface-container-low": "#1c1b1b",
+            "on-tertiary-container": "#2e3f31",
+            "surface-tint": "#e9c176",
+            "error-container": "#93000a",
+            "on-tertiary": "#243427",
+            "on-primary-fixed": "#261900",
+            "on-tertiary-fixed": "#0f1f13",
+            "secondary-fixed-dim": "#d4c5a9",
+            "secondary-container": "#524833",
+            "outline-variant": "#4e4639",
+            "on-primary": "#412d00",
+            "surface-container": "#20201f",
+            "on-secondary-container": "#c6b79c",
+            "primary-container": "#c5a059",
+            "on-surface": "#e5e2e1",
+            "on-error": "#690005",
+            "on-primary-fixed-variant": "#5d4201",
+            "surface-variant": "#353535"
+          },
+          fontFamily: {
+            "headline": ["Noto Serif"],
+            "body": ["Manrope"],
+            "label": ["Manrope"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .editorial-gradient {
+      background: linear-gradient(to bottom, rgba(19,19,19,0.4) 0%, rgba(19,19,19,0.8) 100%);
+    }
+    .cta-gradient {
+      background: linear-gradient(45deg, #e9c176 0%, #c5a059 100%);
+    }
+    .vertical-text {
+      writing-mode: vertical-rl;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary selection:text-on-primary">
+<!-- Navigation Shell -->
+<header class="bg-[#131313] dark:bg-[#131313] font-['Noto_Serif'] antialiased tracking-wide docked full-width top-0 z-50 no-border tonal-shift bg-neutral-900/50 backdrop-blur-md shadow-none fixed w-full">
+<nav class="flex justify-between items-center w-full px-8 py-6 max-w-full mx-auto">
+<div class="text-2xl font-serif tracking-widest text-[#e9c176] uppercase">
+        LUXE TABLE
+      </div>
+<!-- Desktop Links -->
+<div class="hidden md:flex items-center gap-12">
+<a class="text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Waitlist</a>
+<a class="text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Pre-Order</a>
+<a class="text-[#e5e2e1]/60 hover:text-[#e5e2e1] transition-colors" href="#">Status</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:block text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors font-label text-sm uppercase tracking-widest">
+          Admin
+        </button>
+<button class="bg-[#e9c176] text-[#412d00] px-6 py-2 rounded-full font-label text-sm font-bold uppercase tracking-widest hover:bg-white/5 transition-all duration-300 active:opacity-80 active:scale-95">
+          Join Waitlist
+        </button>
+</div>
+</nav>
+</header>
+<!-- Hero Full-Bleed Slideshow Container -->
+<main class="relative h-screen w-full overflow-hidden bg-surface"><!-- Slideshow content -->
+<div class="absolute inset-0 z-0">
+<img alt="Grilled Ribeye Steak" class="w-full h-full object-cover brightness-[0.5]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBza4JHxQI0msD4UXRrveesj3In4MdLUVdSA2Nepn645rsGhGQMZLFUstDuGEYPatUZ0WC2UEtQaQllsDmzD1aYFI_if-_uAwitZLE894u17G2mnHhR0huh3r6l5wBpKDlqp_LgzBDn9NVFIpzgb-b0A2o_D13mmsOUOOKtm8EmZzhqDL-j9zAJjJkJbkTpbgwVMCXduzBc9v-o22EyD6UJMAcYml8cpvsebseqYBmM2ESkjQtGM57edOQOQ0Aour5TRqDXyqQCSPnO"/>
+</div>
+<!-- Editorial Overlay -->
+<div class="absolute inset-0 z-10 editorial-gradient flex flex-col justify-center items-center px-6">
+<div class="max-w-4xl w-full text-center space-y-12">
+<div class="bg-surface-container/60 backdrop-blur-xl p-10 md:p-16 border border-outline-variant/15 rounded-xl inline-block w-full">
+<span class="font-label text-primary tracking-[0.4em] uppercase text-xs md:text-sm mb-6 block font-semibold">The Digital Maître D’</span>
+<h1 class="font-headline text-5xl md:text-8xl text-on-surface mb-6 leading-tight">
+        Grilled Ribeye <br/>
+<span class="italic font-normal">&amp; Shrimp Scampi</span>
+</h1>
+<p class="font-body text-on-surface-variant text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+        Savor our signature 12oz USDA Prime ribeye with herb butter, or the delicate garlic butter Shrimp Scampi with white wine and linguine.
+      </p>
+<button class="cta-gradient text-on-primary-fixed font-label font-extrabold uppercase tracking-[0.2em] px-12 py-6 rounded-full text-sm md:text-base shadow-xl hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] active:scale-95 group">
+<span class="flex items-center justify-center gap-3">
+          Join the Waitlist
+          <span class="material-symbols-outlined text-lg translate-y-[1px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Slideshow Controls -->
+<div class="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-4 items-center">
+<div class="w-12 h-[2px] bg-primary cursor-pointer"></div>
+<div class="w-8 h-[2px] bg-on-surface/20 cursor-pointer hover:bg-on-surface/40 transition-colors"></div>
+<div class="w-8 h-[2px] bg-on-surface/20 cursor-pointer hover:bg-on-surface/40 transition-colors"></div>
+<div class="w-8 h-[2px] bg-on-surface/20 cursor-pointer hover:bg-on-surface/40 transition-colors"></div>
+</div>
+<!-- Scroll Indicator -->
+<div class="absolute bottom-12 right-12 z-20 hidden md:flex flex-col items-center gap-4">
+<span class="font-label text-[10px] tracking-[0.3em] uppercase vertical-text rotate-180 text-on-surface/40">Discover Menu</span>
+<div class="w-[1px] h-16 bg-gradient-to-b from-primary to-transparent"></div>
+</div></main>
+<!-- Secondary Content Section: Featured Plates (Bento Style) -->
+<section class="bg-surface-container-low py-24 px-8">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8">
+<div class="md:col-span-8 group overflow-hidden rounded-xl bg-surface-container-high relative aspect-[16/9]">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70" data-alt="Garlic butter shrimp, white wine, linguine - Shrimp Scampi" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBj2-hV3_eqia3tcQIfoTGaIIGVsWqH7QwwIidUkLs16436pTn54-ydv38c1j3DsOgKO-D0ACoLQGLnx7-1BZKnpj7wqhgFOeQAX8ITkFyLxxHzfxCmwHDLSQ_5VRtouWi-VZoetokD6DkfCRvWUaRpFbMx1__sizkNLNQXR8q0k4VsuP5H1mKRtHFWiDAC5x2jLj5buKZ6hvBSLnniWfDJXlxvxnmtfGSK56aDe6E00n5eRulNuD7_wm1Qw76eLOc127e93pBDMp9j"/>
+<div class="absolute bottom-8 left-8">
+<h3 class="font-headline text-3xl text-on-surface uppercase tracking-tight">Shrimp Scampi</h3>
+<p class="font-body text-on-surface-variant uppercase tracking-widest text-xs mt-2">Garlic butter, white wine, linguine</p>
+</div>
+</div>
+<div class="md:col-span-4 group overflow-hidden rounded-xl bg-surface-container-high relative aspect-square md:aspect-auto">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70" data-alt="Elegant dessert featuring a decadent chocolate fondant with gold leaf garnish and a berry reduction spill" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARCxQl_bWduqCPkQBf0gP5VbgIgzIBSx4EWV8idZIqpuKCHNvpfmuI7V2tvtWy70hlm4S5bhy4RYjB-Z4Fv8V1Khn0-jAt7c5lMH0U8tuh8Y3asU8Kx6uI6PMdXMYRtPzVtYbt9fyiztMxqW08dvjcYVlDUxdmBsBjvuNEzpCK9Rr6OBDrFWtG1tqB0WlxgFEPTvLF2rHBVlCSIQBsVRTIhLpYUYUhweXWxNIa6uX5pez-v0sgNtGaHWVzT34n-Me02AoPIhHn_Xk6"/>
+<div class="absolute bottom-8 left-8">
+<h3 class="font-headline text-3xl text-on-surface">Chocolate Lava Cake</h3>
+<p class="font-body text-on-surface-variant uppercase tracking-widest text-xs mt-2">Warm chocolate cake, molten center</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Shell -->
+<footer class="bg-[#131313] dark:bg-[#131313] full-width border-t border-[#e5e2e1]/10 tonal-nesting bg-neutral-950 flat no-shadows w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="text-lg font-serif tracking-widest text-[#e9c176] uppercase">LUXE TABLE</div>
+<div class="flex flex-wrap justify-center gap-8 font-['Manrope'] text-[12px] tracking-[0.2em] uppercase">
+<a class="text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Contact</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Location</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Privacy</a>
+<a class="text-[#e5e2e1]/40 hover:text-[#e9c176] transition-colors" href="#">Terms</a>
+</div>
+<div class="font-['Manrope'] text-[12px] tracking-[0.2em] uppercase text-[#e5e2e1]/40 text-center md:text-right">
+      © 2024 LUXE TABLE CONCIERGE. ALL RIGHTS RESERVED.
+    </div>
+</footer>
+</body></html>
