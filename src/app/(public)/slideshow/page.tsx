@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { SlideshowContainer } from "@/components/slideshow/SlideshowContainer";
+import { resolveMenuImage } from "@/components/slideshow/imageOverrides";
 import type { SlideshowItem } from "@/components/slideshow/types";
 
 // Always fetch fresh; the kiosk runs for long stretches and menu changes
@@ -22,13 +23,17 @@ export default async function SlideshowPage() {
     },
   });
 
-  const items: SlideshowItem[] = rows.map((r) => ({
-    id: r.id,
-    name: r.name,
-    description: r.description,
-    basePrice: Number(r.base_price),
-    imageUrl: r.image_url,
-  }));
+  const items: SlideshowItem[] = rows.map((r) => {
+    const resolved = resolveMenuImage(r.name, r.image_url);
+    return {
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      basePrice: Number(r.base_price),
+      imageUrl: resolved.url,
+      objectPosition: resolved.objectPosition,
+    };
+  });
 
   return <SlideshowContainer items={items} />;
 }

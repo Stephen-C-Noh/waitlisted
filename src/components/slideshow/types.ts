@@ -4,4 +4,5 @@ export interface SlideshowItem {
   description: string | null;
   basePrice: number;
   imageUrl: string | null;
+  objectPosition: string;
 }
