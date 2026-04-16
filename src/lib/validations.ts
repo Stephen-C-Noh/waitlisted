@@ -6,7 +6,14 @@ export const PIN = z
   .string()
   .regex(/^\d{4}$/, "PIN must be exactly 4 digits");
 
-export const UUID = z.string().uuid("Expected a UUID");
+// Relaxed UUID: accepts any 8-4-4-4-12 hex string (the seeded table/user IDs
+// from V5/V6 don't comply with RFC 4122 variant bits).
+export const UUID = z
+  .string()
+  .regex(
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+    "Expected a UUID",
+  );
 
 export const AccessToken = z
   .string()

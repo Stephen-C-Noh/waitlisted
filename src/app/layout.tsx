@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Serif, Manrope } from "next/font/google";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import "./globals.css";
 
 const notoSerif = Noto_Serif({
@@ -33,7 +34,7 @@ export default function RootLayout({
       className={`${notoSerif.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-surface text-on-surface selection:bg-primary/30">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );
