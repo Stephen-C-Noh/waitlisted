@@ -95,6 +95,14 @@
   border: 1px solid color-mix(in srgb, #4e4639 15%, transparent);
 }
 
+@utility scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 html,
 body {
   background-color: var(--color-surface);

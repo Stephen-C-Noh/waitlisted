@@ -34,11 +34,11 @@ export function MenuClient({
   const router = useRouter();
   const store = usePreOrderStore();
   const [activeCategory, setActiveCategory] = useState(categories[0]?.name ?? "");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmed, setConfirmed] = useState(preOrderStatus === "CONFIRMED");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const pillRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   // Initialize store from server data on first load
   useEffect(() => {
@@ -49,14 +49,37 @@ export function MenuClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const scrollToCategory = useCallback(
-    (name: string) => {
-      setActiveCategory(name);
-      setSidebarOpen(false);
-      sectionRefs.current[name]?.scrollIntoView({ behavior: "smooth" });
-    },
-    [],
-  );
+  // Intersection observer to highlight active category while scrolling
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const name = entry.target.getAttribute("data-category");
+            if (name) {
+              setActiveCategory(name);
+              pillRefs.current[name]?.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+                inline: "center",
+              });
+            }
+          }
+        }
+      },
+      { rootMargin: "-30% 0px -60% 0px", threshold: 0 },
+    );
+
+    for (const el of Object.values(sectionRefs.current)) {
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, [categories]);
+
+  const scrollToCategory = useCallback((name: string) => {
+    setActiveCategory(name);
+    sectionRefs.current[name]?.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
   const handleAddItem = useCallback(
     (item: MenuItem) => {
@@ -75,7 +98,6 @@ export function MenuClient({
     setSaving(true);
 
     try {
-      // Save items
       const saveRes = await fetch(`/api/pre-order/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,7 +116,6 @@ export function MenuClient({
         return;
       }
 
-      // Confirm
       const confirmRes = await fetch(`/api/pre-order/${token}/confirm`, {
         method: "POST",
       });
@@ -120,71 +141,46 @@ export function MenuClient({
     <>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-surface/50 backdrop-blur-md">
-        <nav className="flex justify-between items-center w-full px-6 lg:px-8 py-4 lg:py-6 max-w-full mx-auto">
-          <div className="text-xl lg:text-2xl font-headline tracking-widest text-primary uppercase">
+        <nav className="flex justify-between items-center w-full px-4 lg:px-8 py-3 lg:py-6">
+          <div className="text-lg lg:text-2xl font-headline tracking-widest text-primary uppercase">
             Waitlisted
           </div>
-          <div className="flex items-center gap-4">
-            {/* Mobile category toggle */}
-            <button
-              className="lg:hidden p-2 text-on-surface-variant hover:text-on-surface"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              aria-label="Toggle categories"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
-              </svg>
-            </button>
+          <div className="flex items-center gap-3">
+            <span className="text-on-surface-variant font-label text-[10px] tracking-wider uppercase hidden sm:inline">
+              {guestName}
+            </span>
             <button
               onClick={() => router.push(`/waitlist/${token}/status`)}
-              className="text-on-surface-variant font-label text-xs tracking-widest uppercase hover:text-on-surface transition-colors"
+              className="text-on-surface-variant font-label text-xs tracking-widest uppercase hover:text-on-surface transition-colors px-3 py-2"
             >
               Status
             </button>
           </div>
         </nav>
-      </header>
 
-      {/* Mobile category overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <button
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className="absolute top-20 left-4 right-4 bg-surface-container-high rounded-xl p-6 shadow-2xl ghost-border">
-            <h3 className="font-headline text-lg mb-4 text-on-surface">Categories</h3>
-            <ul className="space-y-4">
-              {categories.map((cat) => (
-                <li key={cat.name}>
-                  <button
-                    onClick={() => scrollToCategory(cat.name)}
-                    className={`flex items-center gap-3 w-full text-left ${
-                      activeCategory === cat.name
-                        ? "text-primary"
-                        : "text-on-surface-variant"
-                    }`}
-                  >
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        activeCategory === cat.name
-                          ? "bg-primary shadow-[0_0_8px_rgba(233,193,118,0.5)]"
-                          : "border border-outline-variant"
-                      }`}
-                    />
-                    <span className="font-label tracking-[0.2em] uppercase text-sm">
-                      {cat.name}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+        {/* Sticky horizontal category pills — mobile & desktop */}
+        <div className="border-t border-outline-variant/10 bg-surface/80 backdrop-blur-md">
+          <div className="flex gap-2 px-4 lg:px-8 py-2.5 overflow-x-auto scrollbar-none">
+            {categories.map((cat) => (
+              <button
+                key={cat.name}
+                ref={(el) => { pillRefs.current[cat.name] = el; }}
+                onClick={() => scrollToCategory(cat.name)}
+                className={`shrink-0 px-4 py-2 rounded-full font-label text-xs uppercase tracking-widest transition-colors ${
+                  activeCategory === cat.name
+                    ? "bg-primary text-on-primary"
+                    : "bg-surface-container text-on-surface-variant"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
           </div>
         </div>
-      )}
+      </header>
 
-      <main className="pt-20 lg:pt-32 pb-32 lg:pb-24 px-4 lg:px-8 max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-        {/* Desktop sidebar */}
+      <main className="pt-28 lg:pt-36 pb-28 lg:pb-24 px-4 lg:px-8 max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12">
+        {/* Desktop sidebar — hidden on mobile (pills replace it) */}
         <aside className="hidden lg:block lg:col-span-2">
           <div className="sticky top-40">
             <h2 className="font-headline text-3xl mb-8 leading-tight">
@@ -192,52 +188,89 @@ export function MenuClient({
               <br />
               <span className="text-primary italic">Menu</span>
             </h2>
-            <ul className="space-y-6">
-              {categories.map((cat) => (
-                <li key={cat.name}>
-                  <button
-                    onClick={() => scrollToCategory(cat.name)}
-                    className="flex items-center gap-4 group"
-                  >
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        activeCategory === cat.name
-                          ? "bg-primary shadow-[0_0_8px_rgba(233,193,118,0.5)]"
-                          : "bg-transparent border border-outline-variant group-hover:border-primary transition-colors"
-                      }`}
-                    />
-                    <span
-                      className={`font-label tracking-[0.2em] uppercase text-sm ${
-                        activeCategory === cat.name
-                          ? "text-primary"
-                          : "text-on-surface-variant group-hover:text-on-surface transition-colors"
-                      }`}
-                    >
-                      {cat.name}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
           </div>
         </aside>
 
         {/* Menu grid */}
-        <section className="lg:col-span-7 space-y-16 lg:space-y-24">
+        <section className="lg:col-span-7 space-y-10 lg:space-y-24">
           {categories.map((cat) => (
             <div
               key={cat.name}
               ref={(el) => { sectionRefs.current[cat.name] = el; }}
-              className="space-y-8 lg:space-y-12 scroll-mt-28 lg:scroll-mt-40"
+              data-category={cat.name}
+              className="space-y-4 lg:space-y-12 scroll-mt-32 lg:scroll-mt-40"
               id={cat.name.toLowerCase()}
             >
-              <div className="flex items-center gap-6">
-                <h2 className="font-headline text-xl lg:text-2xl tracking-wider uppercase text-primary/80">
+              <div className="flex items-center gap-4 lg:gap-6">
+                <h2 className="font-headline text-lg lg:text-2xl tracking-wider uppercase text-primary/80">
                   {cat.name}
                 </h2>
                 <div className="h-px flex-grow bg-outline-variant/30" />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+
+              {/* Mobile: compact horizontal cards. Desktop: image cards in grid */}
+              <div className="space-y-3 lg:hidden">
+                {cat.items.map((item) => {
+                  const inCart = store.items.find(
+                    (c) => c.menuItemId === item.id,
+                  );
+                  return (
+                    <div
+                      key={item.id}
+                      className="bg-surface-container-low rounded-xl p-4 flex gap-4 items-start"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start mb-1">
+                          <h3 className="font-headline text-base text-on-surface leading-snug">
+                            {item.name}
+                          </h3>
+                          <span className="font-body text-primary text-base shrink-0 ml-3">
+                            ${item.basePrice.toFixed(2)}
+                          </span>
+                        </div>
+                        {item.description && (
+                          <p className="font-body text-on-surface-variant text-xs leading-relaxed line-clamp-2 mb-3">
+                            {item.description}
+                          </p>
+                        )}
+                        {inCart ? (
+                          <div className="flex items-center gap-1 w-fit rounded-full border border-primary/30 px-1">
+                            <button
+                              onClick={() =>
+                                store.updateQuantity(item.id, inCart.quantity - 1)
+                              }
+                              className="text-primary font-bold text-lg w-11 h-11 flex items-center justify-center rounded-full active:bg-primary/10"
+                            >
+                              −
+                            </button>
+                            <span className="font-label text-on-surface font-semibold w-6 text-center">
+                              {inCart.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                store.updateQuantity(item.id, inCart.quantity + 1)
+                              }
+                              className="text-primary font-bold text-lg w-11 h-11 flex items-center justify-center rounded-full active:bg-primary/10"
+                            >
+                              +
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleAddItem(item)}
+                            className="border border-outline-variant/30 px-5 py-2.5 font-label tracking-widest text-[10px] uppercase active:bg-primary active:text-on-primary transition-colors rounded-full"
+                          >
+                            Add
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop: full image cards */}
+              <div className="hidden lg:grid lg:grid-cols-2 gap-8">
                 {cat.items.map((item) => {
                   const inCart = store.items.find(
                     (c) => c.menuItemId === item.id,
@@ -247,17 +280,16 @@ export function MenuClient({
                       key={item.id}
                       className="bg-surface-container-low rounded-xl overflow-hidden group hover:bg-surface-container transition-all duration-500 flex flex-col"
                     >
-                      {/* Image placeholder */}
-                      <div className="relative h-48 lg:h-64 overflow-hidden bg-surface-container">
+                      <div className="relative h-64 overflow-hidden bg-surface-container">
                         <div className="absolute inset-0 flex items-center justify-center text-on-surface-variant/20">
                           <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.20-1.10-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z" />
                           </svg>
                         </div>
                       </div>
-                      <div className="p-6 lg:p-8 flex flex-col flex-grow">
-                        <div className="flex justify-between items-start mb-3 lg:mb-4">
-                          <h3 className="font-headline text-lg lg:text-xl text-on-surface">
+                      <div className="p-8 flex flex-col flex-grow">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="font-headline text-xl text-on-surface">
                             {item.name}
                           </h3>
                           <span className="font-body text-primary text-lg shrink-0 ml-4">
@@ -265,7 +297,7 @@ export function MenuClient({
                           </span>
                         </div>
                         {item.description && (
-                          <p className="font-body text-on-surface-variant text-sm leading-relaxed mb-6 lg:mb-8 flex-grow">
+                          <p className="font-body text-on-surface-variant text-sm leading-relaxed mb-8 flex-grow">
                             {item.description}
                           </p>
                         )}
@@ -273,12 +305,9 @@ export function MenuClient({
                           <div className="flex items-center justify-between rounded-lg border border-primary/30 px-4 py-3">
                             <button
                               onClick={() =>
-                                store.updateQuantity(
-                                  item.id,
-                                  inCart.quantity - 1,
-                                )
+                                store.updateQuantity(item.id, inCart.quantity - 1)
                               }
-                              className="text-primary font-bold text-lg w-8 h-8 flex items-center justify-center hover:bg-primary/10 rounded"
+                              className="text-primary font-bold text-lg w-11 h-11 flex items-center justify-center hover:bg-primary/10 rounded-full"
                             >
                               −
                             </button>
@@ -287,12 +316,9 @@ export function MenuClient({
                             </span>
                             <button
                               onClick={() =>
-                                store.updateQuantity(
-                                  item.id,
-                                  inCart.quantity + 1,
-                                )
+                                store.updateQuantity(item.id, inCart.quantity + 1)
                               }
-                              className="text-primary font-bold text-lg w-8 h-8 flex items-center justify-center hover:bg-primary/10 rounded"
+                              className="text-primary font-bold text-lg w-11 h-11 flex items-center justify-center hover:bg-primary/10 rounded-full"
                             >
                               +
                             </button>
@@ -300,7 +326,7 @@ export function MenuClient({
                         ) : (
                           <button
                             onClick={() => handleAddItem(item)}
-                            className="w-full border border-outline-variant/30 py-3 lg:py-4 font-label tracking-widest text-xs uppercase hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-lg flex items-center justify-center gap-2"
+                            className="w-full border border-outline-variant/30 py-4 font-label tracking-widest text-xs uppercase hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-lg flex items-center justify-center gap-2"
                           >
                             Add to List
                           </button>
@@ -404,9 +430,9 @@ export function MenuClient({
           open={cartOpen}
           onOpenChange={setCartOpen}
           trigger={
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full py-1">
               <div className="flex items-center gap-3">
-                <span className="bg-primary text-on-primary text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+                <span className="bg-primary text-on-primary text-xs font-bold min-w-[28px] h-7 rounded-full flex items-center justify-center px-2">
                   {cartCount}
                 </span>
                 <span className="font-label text-sm uppercase tracking-widest text-on-surface">
@@ -419,7 +445,7 @@ export function MenuClient({
             </div>
           }
         >
-          <div className="space-y-4 max-h-[50vh] overflow-y-auto">
+          <div className="space-y-3 max-h-[50vh] overflow-y-auto">
             {store.items.length === 0 ? (
               <p className="text-on-surface-variant/60 italic text-sm font-body py-4">
                 No items selected yet
@@ -430,42 +456,37 @@ export function MenuClient({
                   key={item.menuItemId}
                   className="flex justify-between items-center py-2"
                 >
-                  <div className="flex-1">
-                    <p className="font-body text-sm font-semibold">
-                      {item.name}{" "}
-                      {item.quantity > 1 && (
-                        <span className="text-on-surface-variant font-normal">
-                          ×{item.quantity}
-                        </span>
-                      )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-body text-sm font-semibold truncate">
+                      {item.name}
                     </p>
                     <p className="font-body text-xs text-on-surface-variant">
                       ${(item.unitPrice * item.quantity).toFixed(2)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 shrink-0 ml-3">
                     <button
                       onClick={() =>
                         store.updateQuantity(item.menuItemId, item.quantity - 1)
                       }
-                      className="text-on-surface-variant w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container"
+                      className="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant active:bg-surface-container text-lg"
                     >
                       −
                     </button>
-                    <span className="font-label text-sm w-4 text-center">
+                    <span className="font-label text-sm w-5 text-center">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() =>
                         store.updateQuantity(item.menuItemId, item.quantity + 1)
                       }
-                      className="text-on-surface-variant w-7 h-7 flex items-center justify-center rounded hover:bg-surface-container"
+                      className="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant active:bg-surface-container text-lg"
                     >
                       +
                     </button>
                     <button
                       onClick={() => store.removeItem(item.menuItemId)}
-                      className="text-on-surface-variant hover:text-error ml-2 p-1"
+                      className="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant active:text-error ml-1"
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
