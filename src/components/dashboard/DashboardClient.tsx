@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui";
 import { SeatGuestModal } from "./SeatGuestModal";
+import { PreOrderModal } from "./PreOrderModal";
 
 /* ---------- types ---------- */
 
@@ -79,6 +80,7 @@ export function DashboardClient({ staffName, staffRole }: Props) {
   const [tab, setTab] = useState<Tab>("active");
   const [zone, setZone] = useState<Zone>("");
   const [seatTarget, setSeatTarget] = useState<WaitlistEntry | null>(null);
+  const [preOrderTarget, setPreOrderTarget] = useState<WaitlistEntry | null>(null);
 
   // Waitlist entries — 5s polling
   const { data: entries = [] } = useQuery<WaitlistEntry[]>({
@@ -345,7 +347,10 @@ export function DashboardClient({ staffName, staffRole }: Props) {
                       </td>
                       <td className="px-8 py-6 text-center">
                         {entry.pre_order ? (
-                          <button className="inline-flex items-center gap-2 text-primary hover:text-primary-fixed transition-colors font-label text-xs uppercase tracking-widest border border-primary/20 px-4 py-2 rounded-lg">
+                          <button
+                            onClick={() => setPreOrderTarget(entry)}
+                            className="inline-flex items-center gap-2 text-primary hover:text-primary-fixed transition-colors font-label text-xs uppercase tracking-widest border border-primary/20 px-4 py-2 rounded-lg"
+                          >
                             View Order
                           </button>
                         ) : (
@@ -445,6 +450,15 @@ export function DashboardClient({ staffName, staffRole }: Props) {
             queryClient.invalidateQueries({ queryKey: ["waitlist-entries"] });
             queryClient.invalidateQueries({ queryKey: ["tables"] });
           }}
+        />
+      )}
+
+      {/* Pre-order modal */}
+      {preOrderTarget && (
+        <PreOrderModal
+          entryId={preOrderTarget.id}
+          guestName={preOrderTarget.guest_name}
+          onClose={() => setPreOrderTarget(null)}
         />
       )}
     </>
