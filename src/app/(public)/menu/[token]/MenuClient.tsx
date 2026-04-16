@@ -36,7 +36,7 @@ export function MenuClient({
   const [activeCategory, setActiveCategory] = useState(categories[0]?.name ?? "");
   const [cartOpen, setCartOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [confirmed, setConfirmed] = useState(preOrderStatus === "CONFIRMED");
+  const [everConfirmed, setEverConfirmed] = useState(preOrderStatus === "CONFIRMED");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const pillRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -88,7 +88,6 @@ export function MenuClient({
         name: item.name,
         unitPrice: item.basePrice,
       });
-      setConfirmed(false);
     },
     [store],
   );
@@ -127,7 +126,7 @@ export function MenuClient({
       }
 
       store.setSynced(true);
-      setConfirmed(true);
+      setEverConfirmed(true);
       setCartOpen(false);
     } finally {
       setSaving(false);
@@ -136,6 +135,8 @@ export function MenuClient({
 
   const cartTotal = store.total();
   const cartCount = store.count();
+  // Derived: show "confirmed" only when synced with no local changes since last save
+  const confirmed = everConfirmed && store.synced;
 
   return (
     <>
