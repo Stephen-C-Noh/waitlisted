@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { Button } from "@/components/ui";
 import { MenuClient } from "./MenuClient";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +51,7 @@ export default async function MenuPage({ params }: Props) {
   if (entry.status === "CANCELLED" || entry.status === "SEATED") {
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
-        <div className="text-center space-y-4 max-w-md">
+        <div className="text-center space-y-6 max-w-md">
           <h1 className="font-headline text-3xl text-on-surface">
             Menu Unavailable
           </h1>
@@ -58,6 +60,9 @@ export default async function MenuPage({ params }: Props) {
               ? "You've been seated! Your server will assist you with ordering."
               : "This reservation has been cancelled."}
           </p>
+          <Link href="/slideshow">
+            <Button variant="outline">Back to Home</Button>
+          </Link>
         </div>
       </main>
     );

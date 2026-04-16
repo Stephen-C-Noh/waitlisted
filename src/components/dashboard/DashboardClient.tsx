@@ -325,7 +325,9 @@ export function DashboardClient({ staffName, staffRole }: Props) {
                   <th className="px-8 py-5 font-semibold">Pos</th>
                   <th className="px-8 py-5 font-semibold">Guest Details</th>
                   <th className="px-8 py-5 font-semibold">Party</th>
-                  <th className="px-8 py-5 font-semibold">Wait Time</th>
+                  {tab === "active" && (
+                    <th className="px-8 py-5 font-semibold">Wait Time</th>
+                  )}
                   <th className="px-8 py-5 font-semibold">Preferred Zone</th>
                   <th className="px-8 py-5 font-semibold text-center">
                     Pre-Order
@@ -374,6 +376,7 @@ export function DashboardClient({ staffName, staffRole }: Props) {
                       <td className="px-8 py-6 font-body text-on-surface">
                         {entry.party_size} Guests
                       </td>
+                      {tab === "active" && (
                       <td className="px-8 py-6">
                         <div className="flex flex-col">
                           <span className="text-on-surface font-semibold">
@@ -391,6 +394,7 @@ export function DashboardClient({ staffName, staffRole }: Props) {
                           )}
                         </div>
                       </td>
+                      )}
                       <td className="px-8 py-6">
                         <div className="flex flex-col gap-1">
                           {entry.preferred_zone ? (

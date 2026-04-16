@@ -2,7 +2,8 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Badge } from "@/components/ui";
+import Link from "next/link";
+import { Badge, Button } from "@/components/ui";
 import { Navbar } from "@/components/layout/Navbar";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { StaggerChildren, StaggerItem } from "@/components/motion/StaggerChildren";
@@ -51,13 +52,16 @@ export default function StatusPage() {
   if (error) {
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
-        <div className="text-center space-y-4 max-w-md">
+        <div className="text-center space-y-6 max-w-md">
           <h1 className="font-headline text-3xl text-on-surface">
             Entry Unavailable
           </h1>
           <p className="font-body text-on-surface-variant">
             {error.message}
           </p>
+          <Link href="/slideshow">
+            <Button variant="outline">Back to Home</Button>
+          </Link>
         </div>
       </main>
     );
