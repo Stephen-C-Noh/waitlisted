@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStaffSession } from "@/lib/auth";
 import { SeatGuestBody } from "@/lib/validations";
+import { updateTableStatus, extractPosToken } from "@/lib/spring-boot-client";
 
 /**
  * Staff action: seat a guest.
@@ -59,42 +60,11 @@ export async function POST(
     );
   }
 
-  // Update table status via Spring Boot POS
-  const springUrl = process.env.SPRING_BOOT_URL ?? "http://localhost:8090";
-  const posToken = request.headers.get("cookie")
-    ?.split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith("pos-token="))
-    ?.split("=")
-    .slice(1)
-    .join("=");
+  // Update table status via Spring Boot POS (fallback to local on failure)
+  const posToken = extractPosToken(request);
+  const posRes = await updateTableStatus(tableId, "OCCUPIED", posToken);
 
-  try {
-    const posRes = await fetch(
-      `${springUrl}/api/tables/${tableId}/status`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(posToken ? { Authorization: `Bearer ${posToken}` } : {}),
-        },
-        body: JSON.stringify({ status: "OCCUPIED" }),
-      },
-    );
-
-    if (!posRes.ok) {
-      console.error(
-        `[seat] Spring Boot table update failed: ${posRes.status}`,
-        await posRes.text().catch(() => ""),
-      );
-      // Fallback: update locally if POS is unreachable (dev scenario)
-      await prisma.tables.update({
-        where: { id: tableId },
-        data: { status: "OCCUPIED", current_server_id: session.userId },
-      });
-    }
-  } catch (err) {
-    console.error("[seat] Spring Boot unreachable, updating table locally", err);
+  if (!posRes.ok) {
     await prisma.tables.update({
       where: { id: tableId },
       data: { status: "OCCUPIED", current_server_id: session.userId },

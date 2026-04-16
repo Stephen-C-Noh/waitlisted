@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { getStaffSession, verifyPinForFire } from "@/lib/auth";
 import { FirePreOrderBody } from "@/lib/validations";
+import { createOrder, fireOrder, extractPosToken } from "@/lib/spring-boot-client";
 
 /**
  * POST: fire a pre-order to the kitchen.
@@ -72,67 +73,32 @@ export async function POST(request: Request) {
   }
 
   const tableId = preOrder.waitlist_entry.seated_table_id;
-  const springUrl = process.env.SPRING_BOOT_URL ?? "http://localhost:8090";
-
-  // Extract POS token from cookies for Spring Boot auth
-  const posToken = request.headers
-    .get("cookie")
-    ?.split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith("pos-token="))
-    ?.split("=")
-    .slice(1)
-    .join("=");
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (posToken) headers["Authorization"] = `Bearer ${posToken}`;
+  const posToken = extractPosToken(request);
 
   let firedOrderId: string | null = null;
 
-  try {
-    // 1. Create order in Spring Boot
-    const createRes = await fetch(`${springUrl}/api/orders`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        tableId,
-        userId: fireAuth.userId,
-        items: preOrder.items.map((i) => ({
-          menuItemId: i.menu_item_id,
-          quantity: i.quantity,
-          specialInstructions: i.special_instructions,
-          unitPrice: Number(i.unit_price),
-        })),
-      }),
-    });
+  // 1. Create order in Spring Boot
+  const createRes = await createOrder(
+    {
+      tableId,
+      userId: fireAuth.userId,
+      items: preOrder.items.map((i) => ({
+        menuItemId: i.menu_item_id,
+        quantity: i.quantity,
+        specialInstructions: i.special_instructions,
+        unitPrice: Number(i.unit_price),
+      })),
+    },
+    posToken,
+  );
 
-    if (!createRes.ok) {
-      const errText = await createRes.text().catch(() => "");
-      console.error(`[fire] Spring Boot order create failed: ${createRes.status}`, errText);
-      // Fall through to local — POS may be unreachable or missing auth
-      throw new Error(`POS returned ${createRes.status}`);
-    }
-
-    const orderData = await createRes.json();
-    firedOrderId = orderData.id;
+  if (createRes.ok) {
+    firedOrderId = createRes.data.id;
 
     // 2. Fire the order
-    const fireRes = await fetch(`${springUrl}/api/orders/${firedOrderId}/fire`, {
-      method: "POST",
-      headers,
-    });
-
-    if (!fireRes.ok) {
-      console.error(
-        `[fire] Spring Boot order fire failed: ${fireRes.status}`,
-        await fireRes.text().catch(() => ""),
-      );
-      // Order was created but fire failed — still record it
-    }
-  } catch (err) {
-    console.error("[fire] Spring Boot unavailable, recording fire locally", err);
+    await fireOrder(firedOrderId, posToken);
+  } else {
+    // POS unavailable — record fire locally
     firedOrderId = crypto.randomUUID();
   }
 

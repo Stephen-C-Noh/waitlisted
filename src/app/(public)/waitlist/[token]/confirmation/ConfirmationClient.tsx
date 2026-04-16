@@ -5,6 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { Button } from "@/components/ui";
+import { Navbar } from "@/components/layout/Navbar";
+import { PageTransition } from "@/components/motion/PageTransition";
+import { StaggerChildren, StaggerItem } from "@/components/motion/StaggerChildren";
 
 interface WaitEstimate {
   minutes: number;
@@ -68,21 +71,18 @@ export function ConfirmationClient({
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-surface/50 backdrop-blur-md">
-        <div className="flex justify-between items-center w-full px-8 py-6 max-w-full mx-auto">
-          <div className="text-2xl font-headline tracking-widest text-primary uppercase">
-            Waitlisted
-          </div>
+      <Navbar
+        trailing={
           <span className="text-on-surface-variant font-label text-xs tracking-widest uppercase">
             Status: Confirmed
           </span>
-        </div>
-      </header>
+        }
+      />
 
       <main className="min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-6">
-        <div className="w-full max-w-2xl flex flex-col items-center text-center space-y-12">
+        <StaggerChildren className="w-full max-w-2xl flex flex-col items-center text-center space-y-12">
           {/* Headline */}
-          <div className="space-y-4">
+          <StaggerItem className="space-y-4">
             <div className="flex items-center justify-center gap-2 mb-2">
               <svg
                 className="w-7 h-7 text-tertiary"
@@ -102,10 +102,10 @@ export function ConfirmationClient({
               We&rsquo;ve saved a place for you. We will notify you via text
               when your table is nearing readiness.
             </p>
-          </div>
+          </StaggerItem>
 
           {/* QR code card */}
-          <div className="relative group">
+          <StaggerItem className="relative group">
             <div className="absolute -inset-4 bg-primary/10 blur-2xl rounded-full opacity-50" />
             <div className="relative bg-surface-container-high p-8 rounded-xl shadow-2xl ghost-border flex flex-col items-center gap-6">
               <div className="bg-white p-4 rounded-lg shadow-inner">
@@ -128,10 +128,10 @@ export function ConfirmationClient({
                 </p>
               </div>
             </div>
-          </div>
+          </StaggerItem>
 
           {/* Bento summary cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+          <StaggerItem className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
             {/* Party size */}
             <div className="bg-surface-container-low p-6 rounded-lg flex flex-col items-start justify-center border-l-2 border-primary/30">
               <span className="font-label text-[10px] tracking-[0.2em] text-on-surface-variant uppercase mb-2">
@@ -158,20 +158,20 @@ export function ConfirmationClient({
                 </span>
               </div>
             </div>
-          </div>
+          </StaggerItem>
 
           {/* Queue position */}
-          <div className="bg-surface-container-low p-6 rounded-lg w-full text-center">
+          <StaggerItem className="bg-surface-container-low p-6 rounded-lg w-full text-center">
             <span className="font-label text-[10px] tracking-[0.2em] text-on-surface-variant uppercase">
               Your Position
             </span>
             <p className="font-headline text-5xl text-primary mt-2">
               #{position}
             </p>
-          </div>
+          </StaggerItem>
 
           {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row gap-6 w-full pt-4">
+          <StaggerItem className="flex flex-col sm:flex-row gap-6 w-full pt-4">
             <Link href={`/menu/${token}`} className="flex-1">
               <Button size="lg" className="w-full tracking-widest uppercase">
                 Pre-Order Menu Items
@@ -186,8 +186,8 @@ export function ConfirmationClient({
                 Modify Reservation
               </Button>
             </Link>
-          </div>
-        </div>
+          </StaggerItem>
+        </StaggerChildren>
       </main>
 
       {/* Background blobs */}

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Navbar } from "@/components/layout/Navbar";
 import { usePreOrderStore, type CartItem } from "@/stores/preOrderStore";
 import type { MenuItem } from "./page";
 
@@ -141,12 +142,9 @@ export function MenuClient({
   return (
     <>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-surface/50 backdrop-blur-md">
-        <nav className="flex justify-between items-center w-full px-4 lg:px-8 py-3 lg:py-6">
-          <div className="text-lg lg:text-2xl font-headline tracking-widest text-primary uppercase">
-            Waitlisted
-          </div>
-          <div className="flex items-center gap-3">
+      <Navbar
+        trailing={
+          <>
             <span className="text-on-surface-variant font-label text-[10px] tracking-wider uppercase hidden sm:inline">
               {guestName}
             </span>
@@ -156,9 +154,11 @@ export function MenuClient({
             >
               Status
             </button>
-          </div>
-        </nav>
-
+          </>
+        }
+      />
+      {/* Sticky horizontal category pills — below navbar */}
+      <div className="fixed top-[56px] lg:top-[76px] left-0 right-0 z-40">
         {/* Sticky horizontal category pills — mobile & desktop */}
         <div className="border-t border-outline-variant/10 bg-surface/80 backdrop-blur-md">
           <div className="flex gap-2 px-4 lg:px-8 py-2.5 overflow-x-auto scrollbar-none">
@@ -178,7 +178,7 @@ export function MenuClient({
             ))}
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="pt-28 lg:pt-36 pb-28 lg:pb-24 px-4 lg:px-8 max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12">
         {/* Desktop sidebar — hidden on mobile (pills replace it) */}

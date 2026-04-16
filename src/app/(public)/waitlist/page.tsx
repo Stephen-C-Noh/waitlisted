@@ -4,6 +4,8 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Input, Select, Textarea, Button } from "@/components/ui";
+import { PageTransition } from "@/components/motion/PageTransition";
+import { StaggerChildren, StaggerItem } from "@/components/motion/StaggerChildren";
 import type { CreateWaitlistEntryBody } from "@/lib/validations";
 
 const PARTY_OPTIONS = [
@@ -102,13 +104,14 @@ export default function WaitlistPage() {
   );
 
   return (
+    <PageTransition>
     <main className="flex-grow flex items-center justify-center px-6 py-12 md:py-24 relative overflow-hidden">
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-2xl z-10">
+      <StaggerChildren className="w-full max-w-2xl z-10">
         {/* Header */}
-        <div className="text-center mb-12">
+        <StaggerItem className="text-center mb-12">
           <h1 className="font-headline text-4xl md:text-6xl text-on-surface mb-4 tracking-tight">
             The Evening Awaits
           </h1>
@@ -116,9 +119,10 @@ export default function WaitlistPage() {
             Secure your place in our dining room. We will notify you via SMS the
             moment your table is prepared.
           </p>
-        </div>
+        </StaggerItem>
 
         {/* Live wait-time indicator */}
+        <StaggerItem>
         <div className="bg-surface-container-low rounded-xl p-6 mb-8 flex items-center justify-between ghost-border">
           <div className="flex items-center gap-4">
             <div className="w-3 h-3 bg-tertiary rounded-full animate-pulse shadow-[0_0_15px_rgba(184,204,184,0.4)]" />
@@ -137,8 +141,10 @@ export default function WaitlistPage() {
             </p>
           </div>
         </div>
+        </StaggerItem>
 
         {/* Form card */}
+        <StaggerItem>
         <div className="bg-surface-container-high rounded-xl p-8 md:p-12 shadow-2xl relative ghost-border">
           {errors.form && (
             <div className="mb-6 rounded-lg bg-error-container/20 p-4 text-error text-sm font-label">
@@ -248,7 +254,9 @@ export default function WaitlistPage() {
             </div>
           </form>
         </div>
-      </div>
+        </StaggerItem>
+      </StaggerChildren>
     </main>
+    </PageTransition>
   );
 }

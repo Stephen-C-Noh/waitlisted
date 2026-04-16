@@ -3,6 +3,9 @@
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui";
+import { Navbar } from "@/components/layout/Navbar";
+import { PageTransition } from "@/components/motion/PageTransition";
+import { StaggerChildren, StaggerItem } from "@/components/motion/StaggerChildren";
 
 interface StatusData {
   id: string;
@@ -77,21 +80,18 @@ export default function StatusPage() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-surface/50 backdrop-blur-md">
-        <div className="flex justify-between items-center w-full px-8 py-6 max-w-full mx-auto">
-          <div className="text-2xl font-headline tracking-widest text-primary uppercase">
-            Waitlisted
-          </div>
+      <Navbar
+        trailing={
           <Badge tone={tone} pulse={data.status === "NOTIFIED"}>
             {statusText}
           </Badge>
-        </div>
-      </header>
+        }
+      />
 
       <main className="min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-6">
-        <div className="w-full max-w-lg space-y-8">
+        <StaggerChildren className="w-full max-w-lg space-y-8">
           {/* Greeting */}
-          <div className="text-center space-y-2">
+          <StaggerItem className="text-center space-y-2">
             <h1 className="font-headline text-4xl md:text-5xl text-on-surface">
               Hi, {data.guestName}
             </h1>
@@ -100,20 +100,20 @@ export default function StatusPage() {
                 ? "Please make your way to the host stand."
                 : "Hang tight — we're keeping your place."}
             </p>
-          </div>
+          </StaggerItem>
 
           {/* Position card */}
-          <div className="bg-surface-container-high rounded-xl p-8 text-center ghost-border">
+          <StaggerItem className="bg-surface-container-high rounded-xl p-8 text-center ghost-border">
             <span className="font-label text-[10px] tracking-[0.2em] text-on-surface-variant uppercase">
               Queue Position
             </span>
             <p className="font-headline text-7xl text-primary mt-2">
               #{data.queuePosition}
             </p>
-          </div>
+          </StaggerItem>
 
           {/* Info grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <StaggerItem className="grid grid-cols-2 gap-4">
             <div className="bg-surface-container-low rounded-lg p-5 border-l-2 border-primary/30">
               <span className="font-label text-[10px] tracking-[0.2em] text-on-surface-variant uppercase block mb-1">
                 Party Size
@@ -136,24 +136,26 @@ export default function StatusPage() {
                 </span>
               </div>
             </div>
-          </div>
+          </StaggerItem>
 
           {data.preferredZone && (
-            <div className="bg-surface-container-low rounded-lg p-5 text-center">
+            <StaggerItem className="bg-surface-container-low rounded-lg p-5 text-center">
               <span className="font-label text-[10px] tracking-[0.2em] text-on-surface-variant uppercase block mb-1">
                 Preferred Seating
               </span>
               <span className="font-headline text-xl text-on-surface">
                 {data.preferredZone}
               </span>
-            </div>
+            </StaggerItem>
           )}
 
           {/* Auto-refresh note */}
+          <StaggerItem>
           <p className="text-center font-label text-[10px] text-on-surface-variant uppercase tracking-widest opacity-60">
             This page updates automatically every 10 seconds
           </p>
-        </div>
+          </StaggerItem>
+        </StaggerChildren>
       </main>
 
       {/* Background blobs */}
