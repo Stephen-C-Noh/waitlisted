@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui";
 import { SeatGuestModal } from "./SeatGuestModal";
 import { PreOrderModal } from "./PreOrderModal";
+import { TableFloorMap } from "./TableFloorMap";
+import { WalkInDialog } from "./WalkInDialog";
 
 /* ---------- types ---------- */
 
@@ -81,6 +83,8 @@ export function DashboardClient({ staffName, staffRole }: Props) {
   const [zone, setZone] = useState<Zone>("");
   const [seatTarget, setSeatTarget] = useState<WaitlistEntry | null>(null);
   const [preOrderTarget, setPreOrderTarget] = useState<WaitlistEntry | null>(null);
+  const [walkInTable, setWalkInTable] = useState<Table | null>(null);
+  const [floorMapOpen, setFloorMapOpen] = useState(true);
 
   // Waitlist entries — 5s polling
   const { data: entries = [] } = useQuery<WaitlistEntry[]>({
@@ -137,6 +141,18 @@ export function DashboardClient({ staffName, staffRole }: Props) {
       if (!res.ok) throw new Error(await res.text());
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["waitlist-entries"] }),
+  });
+
+  const tableStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const res = await fetch(`/api/tables/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tables"] }),
   });
 
   const handleNotify = useCallback(
@@ -252,8 +268,56 @@ export function DashboardClient({ staffName, staffRole }: Props) {
           </div>
         </header>
 
+        {/* Floor map — collapsible panel on narrow screens */}
+        <div className="xl:hidden mb-6">
+          <button
+            onClick={() => setFloorMapOpen(!floorMapOpen)}
+            className="w-full flex items-center justify-between bg-surface-container-low rounded-xl px-6 py-4 ghost-border"
+          >
+            <div className="flex items-center gap-4">
+              <h2 className="font-headline text-lg text-on-surface">Floor Map</h2>
+              <div className="flex gap-3 text-xs font-label">
+                <span className="text-tertiary">
+                  {tables.filter((t) => t.status === "AVAILABLE").length} open
+                </span>
+                <span className="text-error">
+                  {tables.filter((t) => t.status === "OCCUPIED").length} occupied
+                </span>
+                <span className="text-secondary">
+                  {tables.filter((t) => t.status === "CLEANING").length} cleaning
+                </span>
+              </div>
+            </div>
+            <svg
+              className={`w-5 h-5 text-on-surface-variant transition-transform ${floorMapOpen ? "rotate-180" : ""}`}
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
+            </svg>
+          </button>
+          {floorMapOpen && (
+            <div className="bg-surface-container-low rounded-b-xl px-6 pb-6 -mt-2 pt-4 ghost-border border-t-0">
+              <p className="font-label text-[10px] text-on-surface-variant mb-4">
+                Tap available → seat walk-in · occupied → cleaning → available
+              </p>
+              <TableFloorMap
+                mode="manage"
+                tables={tables}
+                onStatusChange={(id, status) =>
+                  tableStatusMutation.mutate({ id, status })
+                }
+                onSeatWalkIn={(table) => setWalkInTable(table)}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Waitlist table + Floor map side-by-side */}
+        <div className="flex gap-8 items-start">
+
         {/* Table */}
-        <div className="bg-surface-container-low rounded-xl overflow-hidden shadow-2xl">
+        <div className="flex-1 min-w-0 bg-surface-container-low rounded-xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -420,6 +484,37 @@ export function DashboardClient({ staffName, staffRole }: Props) {
           </div>
         </div>
 
+        {/* Floor map — sticky sidebar */}
+        <div className="hidden xl:block w-72 shrink-0">
+          <div className="sticky top-8 bg-surface-container-low rounded-xl p-6 shadow-2xl ghost-border">
+            <h2 className="font-headline text-lg text-on-surface mb-1">Floor Map</h2>
+            <p className="font-label text-[10px] text-on-surface-variant mb-4">
+              Tap occupied → cleaning → available
+            </p>
+            <div className="flex flex-wrap gap-3 mb-4 text-xs font-label">
+              <span className="text-tertiary">
+                {tables.filter((t) => t.status === "AVAILABLE").length} open
+              </span>
+              <span className="text-error">
+                {tables.filter((t) => t.status === "OCCUPIED").length} occupied
+              </span>
+              <span className="text-secondary">
+                {tables.filter((t) => t.status === "CLEANING").length} cleaning
+              </span>
+            </div>
+            <TableFloorMap
+              mode="manage"
+              tables={tables}
+              onStatusChange={(id, status) =>
+                tableStatusMutation.mutate({ id, status })
+              }
+              onSeatWalkIn={(table) => setWalkInTable(table)}
+            />
+          </div>
+        </div>
+
+        </div>{/* end flex row */}
+
         {/* Footer actions */}
         <div className="mt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-on-surface-variant font-label text-xs uppercase tracking-[0.2em]">
@@ -439,11 +534,7 @@ export function DashboardClient({ staffName, staffRole }: Props) {
       {seatTarget && (
         <SeatGuestModal
           entry={seatTarget}
-          tables={tables.filter(
-            (t) =>
-              t.status === "AVAILABLE" &&
-              t.capacity >= seatTarget.party_size,
-          )}
+          tables={tables}
           onClose={() => setSeatTarget(null)}
           onSeated={() => {
             setSeatTarget(null);
@@ -459,6 +550,19 @@ export function DashboardClient({ staffName, staffRole }: Props) {
           entryId={preOrderTarget.id}
           guestName={preOrderTarget.guest_name}
           onClose={() => setPreOrderTarget(null)}
+        />
+      )}
+
+      {/* Walk-in dialog */}
+      {walkInTable && (
+        <WalkInDialog
+          table={walkInTable}
+          onClose={() => setWalkInTable(null)}
+          onSeated={() => {
+            setWalkInTable(null);
+            queryClient.invalidateQueries({ queryKey: ["waitlist-entries"] });
+            queryClient.invalidateQueries({ queryKey: ["tables"] });
+          }}
         />
       )}
     </>
