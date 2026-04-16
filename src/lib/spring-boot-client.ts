@@ -86,7 +86,7 @@ export function updateTableStatus(
   });
 }
 
-/** POST /api/orders — create an order in the POS. */
+/** POST /api/orders — create a DINE_IN order in the POS. */
 export function createOrder(
   payload: {
     tableId: string | null;
@@ -100,10 +100,13 @@ export function createOrder(
   },
   posToken?: string,
 ) {
-  return posRequest<{ id: string }>("POST", "/api/orders", posToken, payload);
+  return posRequest<{ id: string }>("POST", "/api/orders", posToken, {
+    ...payload,
+    orderType: "DINE_IN",
+  });
 }
 
 /** POST /api/orders/{id}/fire — fire an order to the kitchen. */
 export function fireOrder(orderId: string, posToken?: string) {
-  return posRequest("POST", `/api/orders/${orderId}/fire`, posToken);
+  return posRequest("POST", `/api/orders/${orderId}/fire`, posToken, {});
 }
