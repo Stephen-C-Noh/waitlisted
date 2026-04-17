@@ -10,7 +10,7 @@ dashboard to seat guests, manage tables, and fire confirmed pre-orders to
 the kitchen.
 
 This app is the **guest-facing half** of a two-app system. The other half
-is [`restaurant-pos`](https://github.com/Stephen-C-Noh/restaurant-pos) — a
+is [`restaurant-pos`](https://github.com/Stephen-C-Noh/restaurant-pos) - a
 Spring Boot POS that owns the shared Postgres database's state machine,
 Kafka events, and WebSocket broadcasts to the Kitchen Display.
 
@@ -47,7 +47,7 @@ curl http://localhost:8090/actuator/health
 # {"status":"UP", ... }
 ```
 
-If the command returns `Connection refused`, wait another 30 seconds —
+If the command returns `Connection refused`, wait another 30 seconds -
 Spring Boot takes a moment after Postgres and Kafka pass their healthchecks.
 
 ### 3. Start the waitlist app
@@ -75,7 +75,7 @@ The kiosk is now at **http://localhost:3000**.
 
 | URL                                   | What it is                                      |
 | ------------------------------------- | ----------------------------------------------- |
-| http://localhost:3000                 | Slideshow / kiosk home — tap anywhere           |
+| http://localhost:3000                 | Slideshow / kiosk home - tap anywhere           |
 | http://localhost:3000/waitlist        | Guest entry form                                |
 | http://localhost:3000/admin/login     | Staff dashboard (requires PIN)                  |
 | http://localhost:5173                 | POS frontend + **Kitchen Display**              |
@@ -115,7 +115,7 @@ A short scripted flow that exercises every piece of the system:
 
 Step 7 is the architectural payoff: a change in the Next.js app propagates
 through the Spring Boot state machine, out as a Kafka event, and into a
-separate React frontend — all in under a second.
+separate React frontend - all in under a second.
 
 ---
 
@@ -160,15 +160,15 @@ Middleware lives in `src/proxy.ts` (Next.js 16 naming), not `middleware.ts`.
 ## Route map
 
 ### Public (`src/app/(public)`)
-- `/` and `/slideshow` — idle menu slideshow; any touch navigates to `/waitlist`
-- `/waitlist` — guest entry form
-- `/waitlist/[token]/confirmation` — confirmation with queue position
-- `/waitlist/[token]/status` — live-polling status page (10 s)
-- `/menu/[token]` — pre-order menu and cart
+- `/` and `/slideshow` - idle menu slideshow; any touch navigates to `/waitlist`
+- `/waitlist` - guest entry form
+- `/waitlist/[token]/confirmation` - confirmation with queue position
+- `/waitlist/[token]/status` - live-polling status page (10 s)
+- `/menu/[token]` - pre-order menu and cart
 
 ### Staff (`src/app/(staff)`)
-- `/admin/login` — 4-digit PIN login
-- `/admin/dashboard` — waitlist, floor map, pre-orders
+- `/admin/login` - 4-digit PIN login
+- `/admin/dashboard` - waitlist, floor map, pre-orders
 
 `proxy.ts` guards `/admin/*` by verifying the staff JWT cookie.
 
@@ -209,8 +209,8 @@ Guide/
 
 Non-negotiable rules from `Guide/Design/DESIGN.md`:
 
-- No 1px dividers — use tonal background shifts
-- No pure white — use `on_surface #e5e2e1`
+- No 1px dividers - use tonal background shifts
+- No pure white - use `on_surface #e5e2e1`
 - Gold `#e9c176` is reserved for "moment of truth" CTAs
 - Tonal layering instead of shadow elevation levels
 
@@ -227,7 +227,7 @@ compose down && docker compose up -d` usually fixes it.
 **Spring Boot container restarts in a loop**
 Most often because Postgres wasn't ready in time on an old-cache start.
 `docker compose logs backend` will show `UnknownHostException` or
-`Connection refused` — restart with `docker compose restart backend`.
+`Connection refused` - restart with `docker compose restart backend`.
 
 **PIN login returns "Invalid PIN" for a known-correct PIN**
 Make sure the backend stack is up and healthy. The Next.js login route
