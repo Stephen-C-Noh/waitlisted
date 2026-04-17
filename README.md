@@ -1,18 +1,151 @@
 # Waitlisted
 
-A waitlist and pre-order kiosk for a fine-dining restaurant. Submitted as a school project.
+A waitlist and pre-order kiosk for a fine-dining restaurant. Submitted as
+the final project for CPRG 306D.
 
-Waitlisted runs on a touch-only tablet at the host stand. Guests add themselves to the waitlist, get a trackable status link via SMS, and can browse the menu and build a pre-order while they wait. Staff use a PIN-authenticated dashboard to seat guests, manage tables, and fire confirmed pre-orders to the kitchen.
+Waitlisted runs on a touch-only tablet at the host stand. Guests add
+themselves to the waitlist, get a trackable status link, and can browse
+the menu and build a pre-order while they wait. Staff use a PIN-authenticated
+dashboard to seat guests, manage tables, and fire confirmed pre-orders to
+the kitchen.
+
+This app is the **guest-facing half** of a two-app system. The other half
+is [`restaurant-pos`](https://github.com/Stephen-C-Noh/restaurant-pos) — a
+Spring Boot POS that owns the shared Postgres database's state machine,
+Kafka events, and WebSocket broadcasts to the Kitchen Display.
+
+---
+
+## Running the demo
+
+You will need both repos cloned, Docker Desktop running, and Node.js 20+
+installed. The backend stack is containerized; this Next.js app runs via
+`npm`.
+
+### 1. Clone both repos side by side
+
+```bash
+git clone https://github.com/Stephen-C-Noh/restaurant-pos.git
+git clone https://github.com/Stephen-C-Noh/waitlisted.git
+```
+
+### 2. Start the backend stack
+
+From the `restaurant-pos` repo, bring up Postgres, Kafka, Zookeeper, the
+Spring Boot API, and the POS frontend (which includes the Kitchen Display):
+
+```bash
+cd restaurant-pos/docker
+docker compose up -d
+```
+
+First run builds two images (~5 min on a warm cache). Verify the backend
+is healthy before continuing:
+
+```bash
+curl http://localhost:8090/actuator/health
+# {"status":"UP", ... }
+```
+
+If the command returns `Connection refused`, wait another 30 seconds —
+Spring Boot takes a moment after Postgres and Kafka pass their healthchecks.
+
+### 3. Start the waitlist app
+
+From this repo:
+
+```bash
+cp .env.example .env.local
+```
+
+Open `.env.local` and set `JWT_SECRET` to any long random string (e.g.
+`openssl rand -base64 32`). All other defaults target the dockerized stack
+and work as-is.
+
+Then:
+
+```bash
+npm install
+npm run dev
+```
+
+The kiosk is now at **http://localhost:3000**.
+
+### 4. What to open
+
+| URL                                   | What it is                                      |
+| ------------------------------------- | ----------------------------------------------- |
+| http://localhost:3000                 | Slideshow / kiosk home — tap anywhere           |
+| http://localhost:3000/waitlist        | Guest entry form                                |
+| http://localhost:3000/admin/login     | Staff dashboard (requires PIN)                  |
+| http://localhost:5173                 | POS frontend + **Kitchen Display**              |
+| http://localhost:5050                 | pgAdmin (DB GUI, optional)                      |
+| http://localhost:8080                 | Kafka UI (event stream, optional)               |
+
+### 5. Demo PINs
+
+| PIN  | User     | Role    |
+| ---- | -------- | ------- |
+| 1234 | admin    | ADMIN   |
+| 5678 | manager1 | MANAGER |
+| 9012 | server1  | SERVER  |
+| 3456 | server2  | SERVER  |
+
+The KITCHEN role has no PIN and cannot log in. Login is for front-of-house
+only.
+
+### 6. End-to-end walkthrough
+
+A short scripted flow that exercises every piece of the system:
+
+1. **Guest** opens http://localhost:3000, taps the slideshow. Fills out
+   the waitlist form with any name, party size, and phone number.
+2. **Guest** lands on the confirmation page, then navigates to the
+   status link. The wait-time estimate recalculates every 10 seconds.
+3. **Guest** taps "Browse Menu" and adds a few items to a pre-order.
+4. **Staff** opens http://localhost:3000/admin/login in a second browser
+   window. PIN `1234`. The dashboard shows the new waitlist entry.
+5. **Staff** drags the entry onto an available table, or uses the seat
+   action. The table turns OCCUPIED; the guest's status page flips to
+   "Seated"; remaining guests' wait-times shorten.
+6. **Staff** opens the seated guest's pre-order, taps **Fire to Kitchen**,
+   and re-enters their PIN (the second-PIN gate prevents accidental fires).
+7. **Kitchen Display** at http://localhost:5173 shows the new ticket in
+   real-time via the Kafka → WebSocket pipeline.
+
+Step 7 is the architectural payoff: a change in the Next.js app propagates
+through the Spring Boot state machine, out as a Kafka event, and into a
+separate React frontend — all in under a second.
+
+---
 
 ## Architecture
 
-Waitlisted is the **guest-facing half** of a two-app system. The other half is a separate Spring Boot POS that owns the shared Postgres database's state machine, Kafka events, and WebSocket broadcasts.
-
 - **Reads** (menu, tables, waitlist) go directly through Prisma for speed.
-- **Writes with business logic** (table status changes, create + fire order) go through the Spring Boot POS at `http://localhost:8090` so its state machine fires correctly.
-- Prisma owns three new tables: `waitlist_entries`, `pre_orders`, `pre_order_items`. All other tables are introspected from the POS schema.
+- **Writes with business logic** (table status, create + fire order) go
+  through the Spring Boot POS so its state machine, Kafka outbox, and
+  WebSocket broadcasts fire correctly.
+- Prisma owns three new tables (`waitlist_entries`, `pre_orders`,
+  `pre_order_items`) and introspects the rest of the schema from the POS.
+- Two JWTs are issued on login: the Next.js staff token (signed with `jose`)
+  and a separate token for the Spring Boot API. Both cookies are
+  `HttpOnly; SameSite=Strict`.
 
-See `Plans/waitlisted-project-description.md` and `Plans/implementation-plan.md` for the full spec.
+Full design docs live under `Plans/`. The authoritative design system
+(tokens, rules, mockups) is in `Guide/Design/`.
+
+## Load-bearing UX rules
+
+1. **Seat and fire are separate actions.** Seating a guest updates the
+   table and marks the waitlist entry `SEATED` but does **not** fire the
+   pre-order. That's a distinct dashboard action.
+2. **Firing requires a second PIN.** Before the fire request is sent to
+   Spring Boot, the staff member re-enters their 4-digit PIN. The PIN is
+   re-verified server-side and the authorizing user's ID is recorded in
+   `pre_orders.fired_by_user_id` for audit.
+
+These exist so a kitchen ticket can't be created without a human
+confirming at that exact moment.
 
 ## Stack
 
@@ -22,15 +155,15 @@ See `Plans/waitlisted-project-description.md` and `Plans/implementation-plan.md`
 - **TanStack Query v5**, **Zustand v5**, **Framer Motion v12**
 - **jose** (JWT), **bcryptjs** (PIN hashing), **Zod** (validation)
 
-Middleware lives in `proxy.ts` (Next.js 16 naming), not `middleware.ts`.
+Middleware lives in `src/proxy.ts` (Next.js 16 naming), not `middleware.ts`.
 
 ## Route map
 
 ### Public (`src/app/(public)`)
 - `/` and `/slideshow` — idle menu slideshow; any touch navigates to `/waitlist`
-- `/waitlist` — guest entry form (name, party size, phone, zone)
-- `/waitlist/[token]/confirmation` — post-submit confirmation with queue position
-- `/waitlist/[token]/status` — live-polling status page (10s)
+- `/waitlist` — guest entry form
+- `/waitlist/[token]/confirmation` — confirmation with queue position
+- `/waitlist/[token]/status` — live-polling status page (10 s)
 - `/menu/[token]` — pre-order menu and cart
 
 ### Staff (`src/app/(staff)`)
@@ -38,56 +171,6 @@ Middleware lives in `proxy.ts` (Next.js 16 naming), not `middleware.ts`.
 - `/admin/dashboard` — waitlist, floor map, pre-orders
 
 `proxy.ts` guards `/admin/*` by verifying the staff JWT cookie.
-
-## Two load-bearing UX rules
-
-1. **Seat and fire are separate actions.** Seating a guest updates the table status and marks the waitlist entry `SEATED`. It does **not** fire the pre-order. That's a distinct dashboard action.
-2. **Firing requires a second PIN.** Before calling the POS `POST /api/orders` + `/fire`, the staff member re-enters their 4-digit PIN. The PIN is re-verified server-side, and the authorizing user's id is recorded in `pre_orders.fired_by_user_id` for audit.
-
-This keeps a kitchen ticket from being created without a human confirming at that exact moment.
-
-## Auth model
-
-- **Staff**: PIN-only (no username). `POST /api/auth/login` iterates active non-KITCHEN users with a non-null `pin_hash` and runs `bcryptjs.compare` until one matches. Uses **bcrypt cost 4** to match the Spring Boot `BCryptPasswordEncoder(4)`. Two cookies are issued: `staff-token` (this app) and `pos-token` (Spring Boot). Both are `HttpOnly`, `SameSite=Strict`.
-- **Guests**: no account. Each `waitlist_entries` row has a 64-hex `access_token` embedded in public URLs. Tokens for `CANCELLED` or `SEATED` entries are rejected.
-
-## Getting started
-
-### Prerequisites
-- Node.js 20+
-- PostgreSQL 16 (shared with the `restaurant-pos` Spring Boot app)
-- Flyway migrations V1–V6 from the POS project applied to the database
-
-### Environment
-Create `.env.local`:
-
-```bash
-DATABASE_URL="postgresql://user:pass@localhost:5432/restaurant_pos"
-JWT_SECRET="<generate-a-long-random-string>"
-SPRING_BOOT_URL="http://localhost:8090"
-NEXT_PUBLIC_BASE_URL="http://localhost:3000"
-SMS_PROVIDER="console"
-```
-
-### Install and run
-
-```bash
-npm install
-npx prisma db pull          # introspect the shared POS schema
-npx prisma generate
-npm run dev                 # http://localhost:3000
-```
-
-Start the Spring Boot POS separately on port 8090 for write operations (seat, fire) to work end-to-end. If POS is unreachable, the app falls back to local Prisma writes where possible.
-
-## Scripts
-
-| Command          | What it does              |
-|------------------|---------------------------|
-| `npm run dev`    | Start dev server          |
-| `npm run build`  | Production build          |
-| `npm run start`  | Run the production build  |
-| `npm run lint`   | ESLint                    |
 
 ## Project layout
 
@@ -100,29 +183,54 @@ src/
   components/       UI components
   hooks/            useIdleDetection, polling hooks
   lib/
-    auth.ts         PIN verification + JWT signing
-    prisma.ts       Prisma client singleton
-    wait-time.ts    Wait-time estimator (§8 of the plan)
-    spring-boot-client.ts  HTTP client for the POS
-    validations.ts  Zod schemas for all route bodies
+    auth.ts                 PIN verification + JWT signing
+    prisma.ts               Prisma client singleton
+    wait-time.ts            Wait-time estimator
+    spring-boot-client.ts   HTTP client for the POS
+    validations.ts          Zod schemas for all route bodies
   stores/           Zustand stores
   proxy.ts          Staff auth middleware
 Plans/              Design docs (source of truth)
 Guide/
-  Database/V1–V6    Flyway migrations from the POS project
+  Database/V1–V6    Flyway migrations from the POS project (reference copy)
   Design/           Design system + HTML mockups
 ```
+
+## Scripts
+
+| Command         | What it does             |
+| --------------- | ------------------------ |
+| `npm run dev`   | Start dev server         |
+| `npm run build` | Production build         |
+| `npm run start` | Run the production build |
+| `npm run lint` | ESLint                   |
 
 ## Design system
 
 Non-negotiable rules from `Guide/Design/DESIGN.md`:
+
 - No 1px dividers — use tonal background shifts
 - No pure white — use `on_surface #e5e2e1`
 - Gold `#e9c176` is reserved for "moment of truth" CTAs
 - Tonal layering instead of shadow elevation levels
 
-Authoritative token map lives in the inline `<script>` at the top of each `Guide/Design/*/code.html` mockup.
+The authoritative Tailwind token map is in the inline `<script>` at the
+top of each `Guide/Design/*/code.html` mockup.
 
-## Known limitations
+## Troubleshooting
 
-This is a class project and the scope reflects that. Open tracking issues on GitHub cover the remaining correctness/UX fixes — most notably around POS-unreachable handling when firing orders to the kitchen.
+**`docker compose up` hangs on "waiting for healthy kafka"**
+Kafka sometimes takes 30–60 s to pass its broker-api-versions check on
+the first cold boot. Give it a minute. If it doesn't recover, `docker
+compose down && docker compose up -d` usually fixes it.
+
+**Spring Boot container restarts in a loop**
+Most often because Postgres wasn't ready in time on an old-cache start.
+`docker compose logs backend` will show `UnknownHostException` or
+`Connection refused` — restart with `docker compose restart backend`.
+
+**PIN login returns "Invalid PIN" for a known-correct PIN**
+Make sure the backend stack is up and healthy. The Next.js login route
+also calls Spring Boot to mint the second POS token; if that call fails
+silently, seating and firing won't reach the state machine. Check
+`docker compose logs backend` and the browser network tab.
