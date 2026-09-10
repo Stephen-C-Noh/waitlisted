@@ -16,6 +16,19 @@ Kafka events, and WebSocket broadcasts to the Kitchen Display.
 
 ---
 
+## Screenshots
+
+| | |
+| --- | --- |
+| ![Idle kiosk](docs/images/waitlisted-kiosk-slideshow.jpg) | ![Guest form](docs/images/waitlisted-guest-form.jpg) |
+| Idle kiosk slideshow; any tap starts the waitlist flow | Guest waitlist entry form with a live wait-time estimate |
+| ![Guest confirmation](docs/images/waitlisted-guest-confirmation-qr.jpg) | ![Staff dashboard](docs/images/waitlisted-staff-dashboard.jpg) |
+| Confirmation screen with a QR code guests scan to browse the menu and pre-order | Concierge Overview: the live waitlist queue alongside the floor map |
+| ![Fire PIN gate](docs/images/waitlisted-fire-pin-verification.jpg) | ![Realtime kitchen ticket](docs/images/waitlisted-realtime-kitchen-ticket.jpg) |
+| Second-PIN confirmation gate required before a pre-order reaches the kitchen | The fired order on the `restaurant-pos` Kitchen Display in under a second, via the Kafka to WebSocket pipeline |
+
+---
+
 ## Running the demo
 
 You will need both repos cloned, Docker Desktop running, and Node.js 20+
