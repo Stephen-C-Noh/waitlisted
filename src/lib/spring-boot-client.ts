@@ -10,6 +10,9 @@
 const getBaseUrl = () =>
   process.env.SPRING_BOOT_URL ?? "http://localhost:8090";
 
+const isPosIntegrationEnabled = () =>
+  process.env.POS_INTEGRATION_ENABLED !== "false";
+
 /** Extract the pos-token cookie value from a raw Cookie header. */
 export function extractPosToken(request: Request): string | undefined {
   return request.headers
@@ -49,6 +52,9 @@ async function posRequest<T = unknown>(
   posToken?: string,
   body?: unknown,
 ): Promise<PosResponse<T>> {
+  if (isPosIntegrationEnabled() == false) {
+    return { ok: false, status: 0, message: "POS integration disabled" };
+  }
   try {
     const res = await fetch(`${getBaseUrl()}${path}`, {
       method,
