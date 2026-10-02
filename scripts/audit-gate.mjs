@@ -3,8 +3,7 @@ import { spawnSync } from "node:child_process";
 // advisory ID -> reason. All come from the prisma CLI chain, not shipped in the runtime image.
 const ALLOW = new Map([
   [1145093, "deepmerge-ts: prisma CLI only"],
-  [1153173, "mysql2: prisma CLI only"],
-  [1158532, "mysql2: prisma CLI only"],
+  [1153173, "mysql2: prisma CLI only"]
 ]);
 
 const r = spawnSync("npm", ["audit", "--json"], { encoding: "utf8" });
@@ -36,7 +35,7 @@ const violations = [];
 for (const [id, v] of found) {
   if (v.severity !== "high" && v.severity !== "critical") continue;
   if (ALLOW.has(id)) {
-    console.log(`allowed: ${id} ${v.title}`);
+    console.log(`allowed: ${id} ${ALLOW.get(id)}`);
   } else {
     violations.push(v);
   }
