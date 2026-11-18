@@ -5,8 +5,8 @@ import { NextResponse } from "next/server";
  *
  * Write operations (table status, orders) go through Spring Boot so its
  * state machine, Kafka events, and WebSocket broadcasts fire correctly.
- * When the POS is unreachable or returns an auth error, callers can
- * fall back to local Prisma updates.
+ * Failures come back as PosError; routes turn them into HTTP responses
+ * with posFailure().
  */
 
 const getBaseUrl = () =>
