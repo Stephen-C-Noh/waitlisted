@@ -29,11 +29,14 @@ describe("POS requests (via updateTableStatus)", () => {
   });
 
   it("returns ok:false with status 0 when the POS is unreachable (fetch rejects)", async () => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
     vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError("fetch failed"));
+    vi.stubGlobal("fetch", fetchMock);
 
     const res = await updateTableStatus("t1", "CLEANING", "jwt");
 
+    expect(fetchMock).toHaveBeenCalled();
     expect(res).toMatchObject({ ok: false, status: 0 });
   });
 });
