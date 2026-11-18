@@ -74,8 +74,6 @@ export async function POST(request: Request) {
   const tableId = preOrder.waitlist_entry.seated_table_id;
   const posToken = extractPosToken(request);
 
-  let firedOrderId: string | null = null;
-
   // 1. Create order in Spring Boot
   const createRes = await createOrder(
     {
@@ -92,17 +90,21 @@ export async function POST(request: Request) {
   );
 
   if (!createRes.ok) return posFailure(createRes);
-  firedOrderId = createRes.data.id;
+  const firedOrderId = createRes.data.id;
+  await prisma.pre_orders.update({
+    where: { id: preOrder.id },
+    data: { fired_order_id: firedOrderId },
+  });
 
   // 2. Fire the order
-  await fireOrder(firedOrderId, posToken);
+  const fireRes = await fireOrder(firedOrderId, posToken);
+  if (!fireRes.ok) return posFailure(fireRes);
 
   // Update pre-order status
   const updated = await prisma.pre_orders.update({
     where: { id: preOrder.id },
     data: {
       status: "FIRED",
-      fired_order_id: firedOrderId,
       fired_by_user_id: fireAuth.userId,
     },
   });

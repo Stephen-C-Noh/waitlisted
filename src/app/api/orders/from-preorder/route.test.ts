@@ -62,6 +62,21 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+/** Route fetch by "METHOD path" to a canned status/body; records every call. */
+function stubPos(routes: Record<string, { status: number; body?: unknown }>) {
+  const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+    const key = `${init?.method} ${new URL(url).pathname}`;
+    const r = routes[key];
+    if (!r) throw new Error(`unexpected fetch ${key}`);
+    return new Response(JSON.stringify(r.body ?? {}), { status: r.status });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+const calls = (m: ReturnType<typeof stubPos>) =>
+  m.mock.calls.map(([url, init]) => `${init?.method} ${new URL(url).pathname}`);
+
 describe("POST /api/orders/from-preorder", () => {
   it("returns 503 and writes nothing when the POS is unreachable on create", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
@@ -71,5 +86,21 @@ describe("POST /api/orders/from-preorder", () => {
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ error: "POS unavailable" });
     expect(update).not.toHaveBeenCalled();
+  });
+
+  it("returns 502, keeps the POS order id and does not mark FIRED when fire fails after create", async () => {
+    stubPos({
+      "POST /api/orders": { status: 201, body: { id: "pos-1" } },
+      "POST /api/orders/pos-1/fire": { status: 500, body: {} },
+    });
+
+    const res = await fire();
+
+    expect(res.status).toBe(502);
+    expect(update).toHaveBeenCalledWith({
+      where: { id: PRE_ORDER_ID },
+      data: { fired_order_id: "pos-1" },
+    });
+    expect(update.mock.calls.some(([a]) => (a.data as { status?: string }).status === "FIRED")).toBe(false);
   });
 });
