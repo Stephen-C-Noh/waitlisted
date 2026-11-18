@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { extractPosToken, updateTableStatus } from "@/lib/spring-boot-client";
+import { extractPosToken, posFailure, updateTableStatus } from "@/lib/spring-boot-client";
 
 describe("extractPosToken", () => {
   it("reads the pos-token cookie, keeping any '=' inside the JWT", () => {
@@ -38,5 +38,16 @@ describe("POS requests (via updateTableStatus)", () => {
 
     expect(fetchMock).toHaveBeenCalled();
     expect(res).toMatchObject({ ok: false, status: 0 });
+  });
+});
+
+describe("posFailure", () => {
+  it.each([401, 403])("maps POS %i to 502 (never 401) with a session-expired message", async (status) => {
+    const res = posFailure({ ok: false, status, message: "" });
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({
+      error: "POS session expired - sign out and back in",
+    });
   });
 });

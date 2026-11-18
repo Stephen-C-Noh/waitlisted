@@ -83,6 +83,12 @@ async function posRequest<T = unknown>(
 
 /** Map a failed POS call to the HTTP response our own API should return. */
 export function posFailure(res: PosError): NextResponse {
+  if (res.status === 401 || res.status === 403) {
+    return NextResponse.json(
+      { error: "POS session expired - sign out and back in" },
+      { status: 502 },
+    );
+  }
   return NextResponse.json({ error: "POS unavailable" }, { status: 503 });
 }
 
