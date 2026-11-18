@@ -165,4 +165,16 @@ describe("POST /api/orders/from-preorder", () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
   });
+
+  it("returns 502 (never 401) when the POS rejects the token on create", async () => {
+    stubPos({ "POST /api/orders": { status: 401, body: {} } });
+
+    const res = await fire();
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({
+      error: "POS session expired - sign out and back in",
+    });
+    expect(update).not.toHaveBeenCalled();
+  });
 });
