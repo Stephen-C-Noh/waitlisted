@@ -95,7 +95,10 @@ export function posFailure(res: PosError): NextResponse {
     );
   }
   if (res.status >= 400 && res.status < 500) {
-    return NextResponse.json({ error: res.message }, { status: res.status });
+    return NextResponse.json(
+      { error: res.message || "POS rejected the request" },
+      { status: res.status },
+    );
   }
   if (res.status >= 500) {
     return NextResponse.json({ error: "POS error" }, { status: 502 });
