@@ -57,4 +57,11 @@ describe("posFailure", () => {
     expect(res.status).toBe(status);
     expect(await res.json()).toEqual({ error: "table occupied" });
   });
+
+  it("maps a POS 500 to 502", async () => {
+    const res = posFailure({ ok: false, status: 500, message: "boom" });
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: "POS error" });
+  });
 });
