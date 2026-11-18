@@ -79,14 +79,18 @@ Then:
 
 ```bash
 npm install
-npx prisma migrate deploy   # creates the three waitlist tables; the POS stack must be up first
+npm run db:setup   # first time only: creates the three waitlist tables (POS stack must be up)
 npm run dev
 ```
 
 The kiosk is now at **http://localhost:3000**.
 
+Why not just `prisma migrate deploy`: the database already holds the POS
+tables, so Prisma refuses to migrate a non-empty schema without history
+(P3005). `db:setup` runs the baseline SQL, marks it applied, then deploys
+anything newer. After that, new migrations need only `npx prisma migrate deploy`.
 Already have the three tables from an earlier manual setup? Mark the
-baseline as applied once instead: `npx prisma migrate resolve --applied 0001_waitlist_tables`.
+baseline as applied instead: `npx prisma migrate resolve --applied 0001_waitlist_tables`.
 
 **Never run `prisma migrate dev` in this repo.** `schema.prisma` also holds
 the introspected POS tables, which Flyway owns and which are not in the
@@ -229,6 +233,7 @@ Guide/
 | `npm run build` | Production build         |
 | `npm run start` | Run the production build |
 | `npm run lint` | ESLint                   |
+| `npm run db:setup` | First-time database setup (waitlist tables) |
 
 ## Design system
 

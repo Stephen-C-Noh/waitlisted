@@ -74,7 +74,7 @@ npx prisma init
 npx prisma db pull                                    # introspect POS schema first
 ```
 
-Migrations: `prisma/migrations/` holds only the three waitlist tables; apply with `npx prisma migrate deploy` after the POS stack is up. **Never run `prisma migrate dev`**: the schema includes introspected POS tables that are not in the migration history, so `dev` would try to create or reset them. Write new migrations by hand or with `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script`, keeping only the waitlist statements.
+Migrations: `prisma/migrations/` holds only the three waitlist tables; on a fresh database run `npm run db:setup` after the POS stack is up (plain `migrate deploy` fails with P3005 because the POS tables make the schema non-empty); after that, `npx prisma migrate deploy` applies newer migrations. **Never run `prisma migrate dev`**: the schema includes introspected POS tables that are not in the migration history, so `dev` would try to create or reset them. Write new migrations by hand or with `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script`, keeping only the waitlist statements.
 
 Required env (`.env.local`): `DATABASE_URL` (shared POS Postgres), `JWT_SECRET`, `SPRING_BOOT_URL=http://localhost:8090`, `NEXT_PUBLIC_BASE_URL`, `SMS_PROVIDER=console`.
 
