@@ -122,7 +122,7 @@ export function updateTableStatus(
 /** POST /api/orders — create a DINE_IN order in the POS. */
 export function createOrder(
   payload: {
-    tableId: string | null;
+    tableId: string;
     userId: string;
     items: {
       menuItemId: string;
