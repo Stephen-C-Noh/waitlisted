@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { getStaffSession, verifyPinForFire } from "@/lib/auth";
 import { FirePreOrderBody } from "@/lib/validations";
-import { createOrder, fireOrder, extractPosToken } from "@/lib/spring-boot-client";
+import { createOrder, fireOrder, extractPosToken, posFailure } from "@/lib/spring-boot-client";
 
 /**
  * POST: fire a pre-order to the kitchen.
@@ -92,15 +91,11 @@ export async function POST(request: Request) {
     posToken,
   );
 
-  if (createRes.ok) {
-    firedOrderId = createRes.data.id;
+  if (!createRes.ok) return posFailure(createRes);
+  firedOrderId = createRes.data.id;
 
-    // 2. Fire the order
-    await fireOrder(firedOrderId, posToken);
-  } else {
-    // POS unavailable — record fire locally
-    firedOrderId = crypto.randomUUID();
-  }
+  // 2. Fire the order
+  await fireOrder(firedOrderId, posToken);
 
   // Update pre-order status
   const updated = await prisma.pre_orders.update({

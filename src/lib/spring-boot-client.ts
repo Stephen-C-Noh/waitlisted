@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 /**
  * HTTP client for the Spring Boot POS backend.
  *
@@ -77,6 +79,11 @@ async function posRequest<T = unknown>(
     console.error(`[pos] ${method} ${path} unreachable`, err);
     return { ok: false, status: 0, message: "Spring Boot unreachable" };
   }
+}
+
+/** Map a failed POS call to the HTTP response our own API should return. */
+export function posFailure(res: PosError): NextResponse {
+  return NextResponse.json({ error: "POS unavailable" }, { status: 503 });
 }
 
 /* ---------- domain methods ---------- */
