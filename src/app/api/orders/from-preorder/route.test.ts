@@ -132,4 +132,25 @@ describe("POST /api/orders/from-preorder", () => {
     expect(await res.json()).toEqual({ error: "Guest is not seated" });
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it("creates, fires, then marks FIRED and returns the POS order id", async () => {
+    const fetchMock = stubPos({
+      "POST /api/orders": { status: 201, body: { id: "pos-1" } },
+      "POST /api/orders/pos-1/fire": { status: 200 },
+    });
+
+    const res = await fire();
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      status: "FIRED",
+      firedOrderId: "pos-1",
+      firedByUserId: "u1",
+    });
+    expect(calls(fetchMock)).toEqual(["POST /api/orders", "POST /api/orders/pos-1/fire"]);
+    expect(update).toHaveBeenLastCalledWith({
+      where: { id: PRE_ORDER_ID },
+      data: { status: "FIRED", fired_by_user_id: "u1" },
+    });
+  });
 });
