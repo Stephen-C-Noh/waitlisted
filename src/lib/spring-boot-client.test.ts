@@ -39,6 +39,23 @@ describe("POS requests (via updateTableStatus)", () => {
     expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 
+  it("reads the message field from a POS JSON error body", async () => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const body = {
+      timestamp: "2026-11-18T00:00:00Z",
+      status: 409,
+      error: "Conflict",
+      message: "Only DRAFT or SUBMITTED orders can be fired",
+      path: "/api/orders/o1/fire",
+    };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status: 409 })));
+
+    const res = await updateTableStatus("t1", "CLEANING", "jwt");
+
+    expect(res).toEqual({ ok: false, status: 409, message: body.message });
+  });
+
   it("returns ok:false with status 0 when the POS is unreachable (fetch rejects)", async () => {
     vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
     vi.spyOn(console, "error").mockImplementation(() => {});

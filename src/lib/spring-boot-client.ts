@@ -71,7 +71,11 @@ async function posRequest<T = unknown>(
         `[pos] ${method} ${path} failed: ${res.status}`,
         text,
       );
-      return { ok: false, status: res.status, message: text };
+      let message = text;
+      try {
+        message = JSON.parse(text).message ?? text;
+      } catch {}
+      return { ok: false, status: res.status, message };
     }
 
     const data = (await res.json().catch(() => null)) as T;
