@@ -50,4 +50,11 @@ describe("posFailure", () => {
       error: "POS session expired - sign out and back in",
     });
   });
+
+  it.each([404, 409])("passes a POS %i through with the POS message", async (status) => {
+    const res = posFailure({ ok: false, status, message: "table occupied" });
+
+    expect(res.status).toBe(status);
+    expect(await res.json()).toEqual({ error: "table occupied" });
+  });
 });

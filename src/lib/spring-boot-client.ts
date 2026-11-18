@@ -89,6 +89,9 @@ export function posFailure(res: PosError): NextResponse {
       { status: 502 },
     );
   }
+  if (res.status >= 400 && res.status < 500) {
+    return NextResponse.json({ error: res.message }, { status: res.status });
+  }
   return NextResponse.json({ error: "POS unavailable" }, { status: 503 });
 }
 
