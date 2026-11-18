@@ -119,4 +119,17 @@ describe("POST /api/orders/from-preorder", () => {
       data: { status: "FIRED", fired_by_user_id: "u1" },
     });
   });
+
+  it("returns 409 and never calls the POS when the guest is not seated", async () => {
+    findUnique.mockResolvedValue(
+      preOrder({ waitlist_entry: { id: "w1", seated_table_id: null } }) as never,
+    );
+    const fetchMock = stubPos({});
+
+    const res = await fire();
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "Guest is not seated" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

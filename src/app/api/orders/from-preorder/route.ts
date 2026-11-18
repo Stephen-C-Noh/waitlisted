@@ -72,6 +72,9 @@ export async function POST(request: Request) {
   }
 
   const tableId = preOrder.waitlist_entry.seated_table_id;
+  if (!tableId) {
+    return NextResponse.json({ error: "Guest is not seated" }, { status: 409 });
+  }
   const posToken = extractPosToken(request);
 
   // 1. Create the order in Spring Boot (skipped on retry: id already saved)
