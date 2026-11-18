@@ -28,6 +28,17 @@ describe("POS requests (via updateTableStatus)", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("passes an AbortSignal to fetch so a hung POS times out", async () => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await updateTableStatus("t1", "CLEANING", "jwt");
+
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+
   it("returns ok:false with status 0 when the POS is unreachable (fetch rejects)", async () => {
     vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
     vi.spyOn(console, "error").mockImplementation(() => {});

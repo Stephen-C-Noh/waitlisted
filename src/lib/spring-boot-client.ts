@@ -62,6 +62,7 @@ async function posRequest<T = unknown>(
       method,
       headers: buildHeaders(posToken),
       body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!res.ok) {
