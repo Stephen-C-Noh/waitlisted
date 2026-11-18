@@ -1,9 +1,8 @@
 import { spawnSync } from "node:child_process";
 
-// advisory ID -> reason. All come from the prisma CLI chain, not shipped in the runtime image.
+// advisory ID -> reason. Only dev tooling that is not shipped in the runtime image.
 const ALLOW = new Map([
-  [1145093, "deepmerge-ts: prisma CLI only"],
-  [1153173, "mysql2: prisma CLI only"]
+  [1247710, "picomatch ReDoS: eslint toolchain only (eslint-config-next, typescript-eslint); no fixed release yet (<=4.0.7); patterns come from our own config"]
 ]);
 
 const r = spawnSync("npm", ["audit", "--json"], { encoding: "utf8" });

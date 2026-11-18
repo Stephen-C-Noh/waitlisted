@@ -17,7 +17,7 @@
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.38.0",
     "jose": "^6.2.2",
-    "next": "16.3.6",
+    "next": "^16.4.6",
     "pg": "^8.20.0",
     "prisma": "^7.7.0",
     "qrcode": "^1.5.4",
@@ -35,7 +35,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.6",
+    "eslint-config-next": "^16.4.6",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
