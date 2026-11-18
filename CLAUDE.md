@@ -72,9 +72,9 @@ Lives in `src/lib/wait-time.ts` (to be created). Constants reflect high-end dini
 npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
 npx prisma init
 npx prisma db pull                                    # introspect POS schema first
-npx prisma migrate dev --create-only --name add_waitlist_tables  # review SQL before apply
-npx prisma migrate dev
 ```
+
+Migrations: `prisma/migrations/` holds only the three waitlist tables; on a fresh database run `npm run db:setup` after the POS stack is up (plain `migrate deploy` fails with P3005 because the POS tables make the schema non-empty); after that, `npx prisma migrate deploy` applies newer migrations. **Never run `prisma migrate dev`**: the schema includes introspected POS tables that are not in the migration history, so `dev` would try to create or reset them. Write new migrations by hand or with `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script`, keeping only the waitlist statements.
 
 Required env (`.env.local`): `DATABASE_URL` (shared POS Postgres), `JWT_SECRET`, `SPRING_BOOT_URL=http://localhost:8090`, `NEXT_PUBLIC_BASE_URL`, `SMS_PROVIDER=console`.
 
