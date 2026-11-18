@@ -5,9 +5,10 @@ import { CreateWaitlistEntryBody } from "@/lib/validations";
 import { estimateWaitMinutes } from "@/lib/wait-time";
 import { sendSms } from "@/lib/sms";
 import { getStaffSession } from "@/lib/auth";
+import { withMetrics } from "@/lib/metrics";
 
 /** Staff-only: list waitlist entries with optional status/zone filters. */
-export async function GET(request: NextRequest) {
+export const GET = withMetrics("/api/waitlist", async (request: NextRequest) => {
   const session = await getStaffSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -36,10 +37,10 @@ export async function GET(request: NextRequest) {
   });
 
   return NextResponse.json(entries);
-}
+});
 
 /** Public: create a new waitlist entry. */
-export async function POST(request: Request) {
+export const POST = withMetrics("/api/waitlist", async (request: Request) => {
   let raw: unknown;
   try {
     raw = await request.json();
@@ -103,4 +104,4 @@ export async function POST(request: Request) {
     },
     { status: 201 },
   );
-}
+});
