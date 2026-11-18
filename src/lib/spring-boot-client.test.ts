@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { extractPosToken, updateTableStatus } from "@/lib/spring-boot-client";
+import { extractPosToken, posFailure, updateTableStatus } from "@/lib/spring-boot-client";
 
 describe("extractPosToken", () => {
   it("reads the pos-token cookie, keeping any '=' inside the JWT", () => {
@@ -28,6 +28,34 @@ describe("POS requests (via updateTableStatus)", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("passes an AbortSignal to fetch so a hung POS times out", async () => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await updateTableStatus("t1", "CLEANING", "jwt");
+
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("reads the message field from a POS JSON error body", async () => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const body = {
+      timestamp: "2026-11-18T00:00:00Z",
+      status: 409,
+      error: "Conflict",
+      message: "Only DRAFT or SUBMITTED orders can be fired",
+      path: "/api/orders/o1/fire",
+    };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status: 409 })));
+
+    const res = await updateTableStatus("t1", "CLEANING", "jwt");
+
+    expect(res).toEqual({ ok: false, status: 409, message: body.message });
+  });
+
   it("returns ok:false with status 0 when the POS is unreachable (fetch rejects)", async () => {
     vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -38,5 +66,37 @@ describe("POS requests (via updateTableStatus)", () => {
 
     expect(fetchMock).toHaveBeenCalled();
     expect(res).toMatchObject({ ok: false, status: 0 });
+  });
+});
+
+describe("posFailure", () => {
+  it.each([401, 403])("maps POS %i to 502 (never 401) with a session-expired message", async (status) => {
+    const res = posFailure({ ok: false, status, message: "" });
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({
+      error: "POS session expired - sign out and back in",
+    });
+  });
+
+  it.each([404, 409])("passes a POS %i through with the POS message", async (status) => {
+    const res = posFailure({ ok: false, status, message: "table occupied" });
+
+    expect(res.status).toBe(status);
+    expect(await res.json()).toEqual({ error: "table occupied" });
+  });
+
+  it("never passes an empty message through for a POS 4xx with no body", async () => {
+    const res = posFailure({ ok: false, status: 400, message: "" });
+
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "POS rejected the request" });
+  });
+
+  it("maps a POS 500 to 502", async () => {
+    const res = posFailure({ ok: false, status: 500, message: "boom" });
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: "POS error" });
   });
 });

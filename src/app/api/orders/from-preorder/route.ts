@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { getStaffSession, verifyPinForFire } from "@/lib/auth";
 import { FirePreOrderBody } from "@/lib/validations";
-import { createOrder, fireOrder, extractPosToken } from "@/lib/spring-boot-client";
+import { createOrder, fireOrder, extractPosToken, posFailure } from "@/lib/spring-boot-client";
 
 /**
  * POST: fire a pre-order to the kitchen.
@@ -73,41 +72,45 @@ export async function POST(request: Request) {
   }
 
   const tableId = preOrder.waitlist_entry.seated_table_id;
+  if (!tableId) {
+    return NextResponse.json({ error: "Guest is not seated" }, { status: 409 });
+  }
   const posToken = extractPosToken(request);
 
-  let firedOrderId: string | null = null;
+  // 1. Create the order in Spring Boot (skipped on retry: id already saved)
+  let firedOrderId = preOrder.fired_order_id;
+  if (!firedOrderId) {
+    const createRes = await createOrder(
+      {
+        tableId,
+        userId: fireAuth.userId,
+        items: preOrder.items.map((i) => ({
+          menuItemId: i.menu_item_id,
+          quantity: i.quantity,
+          specialInstructions: i.special_instructions,
+          unitPrice: Number(i.unit_price),
+        })),
+      },
+      posToken,
+    );
+    if (!createRes.ok) return posFailure(createRes);
 
-  // 1. Create order in Spring Boot
-  const createRes = await createOrder(
-    {
-      tableId,
-      userId: fireAuth.userId,
-      items: preOrder.items.map((i) => ({
-        menuItemId: i.menu_item_id,
-        quantity: i.quantity,
-        specialInstructions: i.special_instructions,
-        unitPrice: Number(i.unit_price),
-      })),
-    },
-    posToken,
-  );
-
-  if (createRes.ok) {
     firedOrderId = createRes.data.id;
-
-    // 2. Fire the order
-    await fireOrder(firedOrderId, posToken);
-  } else {
-    // POS unavailable — record fire locally
-    firedOrderId = crypto.randomUUID();
+    await prisma.pre_orders.update({
+      where: { id: preOrder.id },
+      data: { fired_order_id: firedOrderId },
+    });
   }
+
+  // 2. Fire the order
+  const fireRes = await fireOrder(firedOrderId, posToken);
+  if (!fireRes.ok) return posFailure(fireRes);
 
   // Update pre-order status
   const updated = await prisma.pre_orders.update({
     where: { id: preOrder.id },
     data: {
       status: "FIRED",
-      fired_order_id: firedOrderId,
       fired_by_user_id: fireAuth.userId,
     },
   });

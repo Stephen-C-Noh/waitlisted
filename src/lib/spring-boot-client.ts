@@ -1,10 +1,12 @@
+import { NextResponse } from "next/server";
+
 /**
  * HTTP client for the Spring Boot POS backend.
  *
  * Write operations (table status, orders) go through Spring Boot so its
  * state machine, Kafka events, and WebSocket broadcasts fire correctly.
- * When the POS is unreachable or returns an auth error, callers can
- * fall back to local Prisma updates.
+ * Failures come back as PosError; routes turn them into HTTP responses
+ * with posFailure().
  */
 
 const getBaseUrl = () =>
@@ -60,6 +62,7 @@ async function posRequest<T = unknown>(
       method,
       headers: buildHeaders(posToken),
       body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!res.ok) {
@@ -68,7 +71,11 @@ async function posRequest<T = unknown>(
         `[pos] ${method} ${path} failed: ${res.status}`,
         text,
       );
-      return { ok: false, status: res.status, message: text };
+      let message = text;
+      try {
+        message = JSON.parse(text).message ?? text;
+      } catch {}
+      return { ok: false, status: res.status, message };
     }
 
     const data = (await res.json().catch(() => null)) as T;
@@ -77,6 +84,26 @@ async function posRequest<T = unknown>(
     console.error(`[pos] ${method} ${path} unreachable`, err);
     return { ok: false, status: 0, message: "Spring Boot unreachable" };
   }
+}
+
+/** Map a failed POS call to the HTTP response our own API should return. */
+export function posFailure(res: PosError): NextResponse {
+  if (res.status === 401 || res.status === 403) {
+    return NextResponse.json(
+      { error: "POS session expired - sign out and back in" },
+      { status: 502 },
+    );
+  }
+  if (res.status >= 400 && res.status < 500) {
+    return NextResponse.json(
+      { error: res.message || "POS rejected the request" },
+      { status: res.status },
+    );
+  }
+  if (res.status >= 500) {
+    return NextResponse.json({ error: "POS error" }, { status: 502 });
+  }
+  return NextResponse.json({ error: "POS unavailable" }, { status: 503 });
 }
 
 /* ---------- domain methods ---------- */
@@ -95,7 +122,7 @@ export function updateTableStatus(
 /** POST /api/orders — create a DINE_IN order in the POS. */
 export function createOrder(
   payload: {
-    tableId: string | null;
+    tableId: string;
     userId: string;
     items: {
       menuItemId: string;
