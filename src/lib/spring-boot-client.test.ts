@@ -14,6 +14,7 @@ describe("POS requests (via updateTableStatus)", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("returns ok:false with status 0 and never calls fetch when POS integration is disabled", async () => {
@@ -25,5 +26,14 @@ describe("POS requests (via updateTableStatus)", () => {
 
     expect(res).toMatchObject({ ok: false, status: 0 });
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("returns ok:false with status 0 when the POS is unreachable (fetch rejects)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+    const res = await updateTableStatus("t1", "CLEANING", "jwt");
+
+    expect(res).toMatchObject({ ok: false, status: 0 });
   });
 });
