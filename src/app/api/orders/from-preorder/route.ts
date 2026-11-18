@@ -74,27 +74,30 @@ export async function POST(request: Request) {
   const tableId = preOrder.waitlist_entry.seated_table_id;
   const posToken = extractPosToken(request);
 
-  // 1. Create order in Spring Boot
-  const createRes = await createOrder(
-    {
-      tableId,
-      userId: fireAuth.userId,
-      items: preOrder.items.map((i) => ({
-        menuItemId: i.menu_item_id,
-        quantity: i.quantity,
-        specialInstructions: i.special_instructions,
-        unitPrice: Number(i.unit_price),
-      })),
-    },
-    posToken,
-  );
+  // 1. Create the order in Spring Boot (skipped on retry: id already saved)
+  let firedOrderId = preOrder.fired_order_id;
+  if (!firedOrderId) {
+    const createRes = await createOrder(
+      {
+        tableId,
+        userId: fireAuth.userId,
+        items: preOrder.items.map((i) => ({
+          menuItemId: i.menu_item_id,
+          quantity: i.quantity,
+          specialInstructions: i.special_instructions,
+          unitPrice: Number(i.unit_price),
+        })),
+      },
+      posToken,
+    );
+    if (!createRes.ok) return posFailure(createRes);
 
-  if (!createRes.ok) return posFailure(createRes);
-  const firedOrderId = createRes.data.id;
-  await prisma.pre_orders.update({
-    where: { id: preOrder.id },
-    data: { fired_order_id: firedOrderId },
-  });
+    firedOrderId = createRes.data.id;
+    await prisma.pre_orders.update({
+      where: { id: preOrder.id },
+      data: { fired_order_id: firedOrderId },
+    });
+  }
 
   // 2. Fire the order
   const fireRes = await fireOrder(firedOrderId, posToken);

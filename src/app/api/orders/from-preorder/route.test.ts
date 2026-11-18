@@ -103,4 +103,20 @@ describe("POST /api/orders/from-preorder", () => {
     });
     expect(update.mock.calls.some(([a]) => (a.data as { status?: string }).status === "FIRED")).toBe(false);
   });
+
+  it("retry with a saved fired_order_id skips create, fires that order, then marks FIRED", async () => {
+    findUnique.mockResolvedValue(preOrder({ fired_order_id: "pos-1" }) as never);
+    const fetchMock = stubPos({
+      "POST /api/orders/pos-1/fire": { status: 200 },
+    });
+
+    const res = await fire();
+
+    expect(res.status).toBe(200);
+    expect(calls(fetchMock)).toEqual(["POST /api/orders/pos-1/fire"]);
+    expect(update).toHaveBeenCalledWith({
+      where: { id: PRE_ORDER_ID },
+      data: { status: "FIRED", fired_by_user_id: "u1" },
+    });
+  });
 });
