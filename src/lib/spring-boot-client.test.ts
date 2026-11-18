@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { extractPosToken } from "@/lib/spring-boot-client";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { extractPosToken, updateTableStatus } from "@/lib/spring-boot-client";
 
 describe("extractPosToken", () => {
   it("reads the pos-token cookie, keeping any '=' inside the JWT", () => {
@@ -7,5 +7,23 @@ describe("extractPosToken", () => {
       headers: { cookie: "staff-session=abc; pos-token=eyJh.b=c.d==; theme=dark" },
     });
     expect(extractPosToken(request)).toBe("eyJh.b=c.d==");
+  });
+});
+
+describe("POS requests (via updateTableStatus)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it("returns ok:false with status 0 and never calls fetch when POS integration is disabled", async () => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "false");
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const res = await updateTableStatus("t1", "CLEANING", "jwt");
+
+    expect(res).toMatchObject({ ok: false, status: 0 });
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
