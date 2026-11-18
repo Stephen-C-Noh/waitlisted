@@ -153,4 +153,16 @@ describe("POST /api/orders/from-preorder", () => {
       data: { status: "FIRED", fired_by_user_id: "u1" },
     });
   });
+
+  it("returns 409 and never calls the POS when the pre-order is already FIRED", async () => {
+    findUnique.mockResolvedValue(preOrder({ status: "FIRED", fired_order_id: "pos-1" }) as never);
+    const fetchMock = stubPos({});
+
+    const res = await fire();
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "This order has already been fired" });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+  });
 });
