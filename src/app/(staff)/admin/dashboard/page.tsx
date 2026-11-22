@@ -1,4 +1,5 @@
 import { getStaffSession } from "@/lib/auth";
+import { isPosIntegrationEnabled } from "@/lib/spring-boot-client";
 import { DashboardClient } from "@/components/dashboard/DashboardClient";
 
 export default async function DashboardPage() {
@@ -8,6 +9,7 @@ export default async function DashboardPage() {
     <DashboardClient
       staffName={session?.fullName ?? "Staff"}
       staffRole={session?.role ?? "UNKNOWN"}
+      posEnabled={isPosIntegrationEnabled()}
     />
   );
 }

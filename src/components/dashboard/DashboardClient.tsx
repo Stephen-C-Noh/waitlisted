@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui";
+import { POS_DISABLED_NOTE } from "@/lib/pos-mode";
 import { SeatGuestModal } from "./SeatGuestModal";
 import { PreOrderModal } from "./PreOrderModal";
 import { TableFloorMap } from "./TableFloorMap";
@@ -75,9 +76,11 @@ function matchingTables(tables: Table[], entry: WaitlistEntry) {
 interface Props {
   staffName: string;
   staffRole: string;
+  /** False in cloud mode (no POS): seat, fire and table-status actions are disabled. */
+  posEnabled: boolean;
 }
 
-export function DashboardClient({ staffName, staffRole }: Props) {
+export function DashboardClient({ staffName, staffRole, posEnabled }: Props) {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("active");
   const [zone, setZone] = useState<Zone>("");
@@ -268,6 +271,12 @@ export function DashboardClient({ staffName, staffRole }: Props) {
           </div>
         </header>
 
+        {!posEnabled && (
+          <p className="mb-6 text-on-surface-variant font-label text-sm">
+            {POS_DISABLED_NOTE}
+          </p>
+        )}
+
         {/* Floor map — collapsible panel on narrow screens */}
         <div className="xl:hidden mb-6">
           <button
@@ -303,6 +312,7 @@ export function DashboardClient({ staffName, staffRole }: Props) {
               </p>
               <TableFloorMap
                 mode="manage"
+                disabled={!posEnabled}
                 tables={tables}
                 onStatusChange={(id, status) =>
                   tableStatusMutation.mutate({ id, status })
@@ -433,8 +443,9 @@ export function DashboardClient({ staffName, staffRole }: Props) {
                             {/* Seat */}
                             <button
                               onClick={() => setSeatTarget(entry)}
-                              className="p-2 hover:bg-tertiary/10 text-tertiary rounded-lg transition-colors"
-                              title="Seat Guest"
+                              disabled={!posEnabled}
+                              className="p-2 hover:bg-tertiary/10 text-tertiary rounded-lg transition-colors disabled:opacity-30"
+                              title={posEnabled ? "Seat Guest" : POS_DISABLED_NOTE}
                             >
                               <svg
                                 className="w-5 h-5"
@@ -508,6 +519,7 @@ export function DashboardClient({ staffName, staffRole }: Props) {
             </div>
             <TableFloorMap
               mode="manage"
+              disabled={!posEnabled}
               tables={tables}
               onStatusChange={(id, status) =>
                 tableStatusMutation.mutate({ id, status })
@@ -539,6 +551,7 @@ export function DashboardClient({ staffName, staffRole }: Props) {
         <SeatGuestModal
           entry={seatTarget}
           tables={tables}
+          posEnabled={posEnabled}
           onClose={() => setSeatTarget(null)}
           onSeated={() => {
             setSeatTarget(null);
@@ -553,6 +566,7 @@ export function DashboardClient({ staffName, staffRole }: Props) {
         <PreOrderModal
           entryId={preOrderTarget.id}
           guestName={preOrderTarget.guest_name}
+          posEnabled={posEnabled}
           onClose={() => setPreOrderTarget(null)}
         />
       )}
@@ -561,6 +575,7 @@ export function DashboardClient({ staffName, staffRole }: Props) {
       {walkInTable && (
         <WalkInDialog
           table={walkInTable}
+          posEnabled={posEnabled}
           onClose={() => setWalkInTable(null)}
           onSeated={() => {
             setWalkInTable(null);

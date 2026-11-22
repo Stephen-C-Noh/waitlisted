@@ -26,6 +26,8 @@ interface SelectModeProps extends BaseProps {
 interface ManageModeProps extends BaseProps {
   /** Manage mode: advance table lifecycle (OCCUPIED→CLEANING→AVAILABLE). */
   mode: "manage";
+  /** False in cloud mode: status changes and walk-in seating need the POS. */
+  disabled?: boolean;
   onStatusChange: (id: string, newStatus: string) => void;
   /** Tap an available table to seat a walk-in. */
   onSeatWalkIn?: (table: Table) => void;
@@ -136,6 +138,7 @@ export function TableFloorMap(props: Props) {
       const state = getSelectState(table, props.partySize, props.selectedId);
       return state === "selectable" || state === "selected";
     }
+    if (props.disabled) return false;
     return (
       table.status === "OCCUPIED" ||
       table.status === "CLEANING" ||

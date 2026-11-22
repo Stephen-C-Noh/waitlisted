@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui";
+import { POS_DISABLED_NOTE } from "@/lib/pos-mode";
 import { PinConfirmDialog } from "./PinConfirmDialog";
 
 interface PreOrderItem {
@@ -26,10 +27,11 @@ interface PreOrderData {
 interface Props {
   entryId: string;
   guestName: string;
+  posEnabled: boolean;
   onClose: () => void;
 }
 
-export function PreOrderModal({ entryId, guestName, onClose }: Props) {
+export function PreOrderModal({ entryId, guestName, posEnabled, onClose }: Props) {
   const queryClient = useQueryClient();
   const [showPin, setShowPin] = useState(false);
   const [firing, setFiring] = useState(false);
@@ -169,16 +171,26 @@ export function PreOrderModal({ entryId, guestName, onClose }: Props) {
                   </span>
                 </div>
               ) : (
-                <div className="flex justify-end gap-4">
-                  <Button variant="ghost" onClick={onClose}>
-                    Close
-                  </Button>
-                  {data.status === "CONFIRMED" && (
-                    <Button onClick={() => setShowPin(true)}>
-                      Fire to Kitchen
-                    </Button>
+                <>
+                  {!posEnabled && data.status === "CONFIRMED" && (
+                    <p className="mb-4 text-right text-on-surface-variant text-sm font-label">
+                      {POS_DISABLED_NOTE}
+                    </p>
                   )}
-                </div>
+                  <div className="flex justify-end gap-4">
+                    <Button variant="ghost" onClick={onClose}>
+                      Close
+                    </Button>
+                    {data.status === "CONFIRMED" && (
+                      <Button
+                        disabled={!posEnabled}
+                        onClick={() => setShowPin(true)}
+                      >
+                        Fire to Kitchen
+                      </Button>
+                    )}
+                  </div>
+                </>
               )}
             </>
           )}
