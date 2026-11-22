@@ -58,4 +58,15 @@ describe("PATCH /api/tables/[id]/status", () => {
     expect(await res.json()).toEqual({ error: "POS unavailable" });
     expect(tableUpdate).not.toHaveBeenCalled();
   });
+
+  it("returns 409 and never calls the POS on an invalid transition", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await setStatus("AVAILABLE");
+
+    expect(res.status).toBe(409);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(tableUpdate).not.toHaveBeenCalled();
+  });
 });
