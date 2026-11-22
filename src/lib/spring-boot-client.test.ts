@@ -148,4 +148,8 @@ describe("updateTableStatus body", () => {
   it("sends serverId when given", async () => {
     expect(await sentBody("u1")).toEqual({ status: "OCCUPIED", serverId: "u1" });
   });
+
+  it("omits serverId when not given", async () => {
+    expect(await sentBody()).toEqual({ status: "OCCUPIED" });
+  });
 });
