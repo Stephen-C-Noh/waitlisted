@@ -153,7 +153,10 @@ export function DashboardClient({ staffName, staffRole, posEnabled }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to update table");
+      }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tables"] }),
   });
@@ -274,6 +277,12 @@ export function DashboardClient({ staffName, staffRole, posEnabled }: Props) {
         {!posEnabled && (
           <p className="mb-6 text-on-surface-variant font-label text-sm">
             {POS_DISABLED_NOTE}
+          </p>
+        )}
+
+        {tableStatusMutation.isError && (
+          <p role="alert" className="mb-6 text-error font-label text-sm">
+            {tableStatusMutation.error.message}
           </p>
         )}
 
