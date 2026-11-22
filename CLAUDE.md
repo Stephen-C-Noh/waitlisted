@@ -54,7 +54,7 @@ Customers have no account: each `waitlist_entries` row carries a 64-hex `access_
 This is a load-bearing UX rule, not a cleanup candidate:
 
 1. **Seat guest** — updates table status via Spring Boot and sets `waitlist_entries.status = SEATED`. **Does not** touch the pre-order. This lets the server walk the party to the table and verbally confirm the order with the guest.
-2. **Fire pre-order** — a distinct dashboard action. Prompts the acting staff member for their **4-digit PIN a second time**. The PIN is sent in the `POST /api/orders/from-preorder` body and re-verified server-side against `users.pin_hash` before the route calls Spring Boot's `POST /api/orders` + `/fire`. On success the route sets `pre_orders.status = FIRED`, `fired_order_id`, and `fired_by_user_id` (audit trail of who authorized the fire).
+2. **Fire pre-order** — a distinct dashboard action. Prompts the acting staff member for their **4-digit PIN a second time**. The PIN is sent in the `POST /api/orders/from-preorder` body and re-verified server-side against `users.pin_hash` before the route calls Spring Boot's `POST /api/orders` + `/fire`. The route saves `fired_order_id` as soon as the POS creates the order (status stays `CONFIRMED`, so a retry fires that order instead of creating another); only after the POS fire succeeds does it set `pre_orders.status = FIRED` and `fired_by_user_id` (audit trail of who authorized the fire). So `fired_order_id` can be set on a `CONFIRMED` row; check `status`, not the id, to know whether it was fired.
 
 Never wire the "seat" action to automatically fire the pre-order, even for convenience — the second PIN gate exists so a kitchen ticket can't be created without a human confirming at that moment.
 
