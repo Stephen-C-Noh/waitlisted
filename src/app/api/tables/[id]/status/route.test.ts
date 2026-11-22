@@ -85,4 +85,14 @@ describe("PATCH /api/tables/[id]/status", () => {
     expect(`${init.method} ${new URL(url).pathname}`).toBe(`PATCH /api/tables/${TABLE_ID}/status`);
     expect(tableUpdate).not.toHaveBeenCalled();
   });
+
+  it("passes a POS rejection through and writes nothing", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ message: "Table busy" }), { status: 409 })));
+
+    const res = await setStatus("CLEANING");
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "Table busy" });
+    expect(tableUpdate).not.toHaveBeenCalled();
+  });
 });
