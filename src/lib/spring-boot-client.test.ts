@@ -28,15 +28,31 @@ describe("POS requests (via updateTableStatus)", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it("passes an AbortSignal to fetch so a hung POS times out", async () => {
+  it("passes an 8 s timeout signal to fetch so a hung POS times out", async () => {
     vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    // Node's AbortSignal.timeout ignores fake timers, so check the 8 s signal is the one fetch gets.
+    const timeoutSpy = vi.spyOn(AbortSignal, "timeout");
     const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
     await updateTableStatus("t1", "CLEANING", "jwt");
 
+    expect(timeoutSpy).toHaveBeenCalledWith(8000);
     const init = fetchMock.mock.calls[0][1] as RequestInit;
-    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal).toBe(timeoutSpy.mock.results[0].value);
+  });
+
+  it("returns ok:false with status 0 when the timeout aborts the request", async () => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError")),
+    );
+
+    const res = await updateTableStatus("t1", "CLEANING", "jwt");
+
+    expect(res).toMatchObject({ ok: false, status: 0 });
   });
 
   it("reads the message field from a POS JSON error body", async () => {
