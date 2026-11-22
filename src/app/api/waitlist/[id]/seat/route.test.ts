@@ -80,4 +80,20 @@ describe("POST /api/waitlist/[id]/seat", () => {
     expect(tableUpdate).not.toHaveBeenCalled();
     expect(entryUpdate).not.toHaveBeenCalled();
   });
+
+  it("passes the POS 409 message through and leaves the entry unchanged", async () => {
+    stubPos({
+      [`PATCH /api/tables/${TABLE_ID}/status`]: {
+        status: 409,
+        body: { message: "Table T1 is already occupied" },
+      },
+    });
+
+    const res = await seat();
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "Table T1 is already occupied" });
+    expect(tableUpdate).not.toHaveBeenCalled();
+    expect(entryUpdate).not.toHaveBeenCalled();
+  });
 });
