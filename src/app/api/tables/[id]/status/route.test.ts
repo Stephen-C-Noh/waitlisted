@@ -69,4 +69,20 @@ describe("PATCH /api/tables/[id]/status", () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(tableUpdate).not.toHaveBeenCalled();
   });
+
+  it("returns the re-read table after the POS accepts the change", async () => {
+    tableFind
+      .mockResolvedValueOnce({ id: TABLE_ID, table_number: "T1", status: "OCCUPIED" } as never)
+      .mockResolvedValueOnce({ id: TABLE_ID, table_number: "T1", status: "CLEANING" } as never);
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await setStatus("CLEANING");
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ id: TABLE_ID, status: "CLEANING" });
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(`${init.method} ${new URL(url).pathname}`).toBe(`PATCH /api/tables/${TABLE_ID}/status`);
+    expect(tableUpdate).not.toHaveBeenCalled();
+  });
 });
