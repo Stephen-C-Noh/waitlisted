@@ -96,4 +96,27 @@ describe("POST /api/waitlist/[id]/seat", () => {
     expect(tableUpdate).not.toHaveBeenCalled();
     expect(entryUpdate).not.toHaveBeenCalled();
   });
+
+  it("sends the seating user to the POS and marks the entry SEATED on success", async () => {
+    const fetchMock = stubPos({
+      [`PATCH /api/tables/${TABLE_ID}/status`]: { status: 200 },
+    });
+
+    const res = await seat();
+
+    expect(res.status).toBe(200);
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual({
+      status: "OCCUPIED",
+      serverId: "u1",
+    });
+    expect(entryUpdate).toHaveBeenCalledWith({
+      where: { id: ENTRY_ID },
+      data: expect.objectContaining({
+        status: "SEATED",
+        seated_table_id: TABLE_ID,
+        seated_by_user_id: "u1",
+      }),
+    });
+    expect(tableUpdate).not.toHaveBeenCalled();
+  });
 });

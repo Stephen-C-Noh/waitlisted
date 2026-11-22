@@ -62,7 +62,7 @@ export async function POST(
 
   // Only the POS changes table state; if it fails, nothing is written.
   const posToken = extractPosToken(request);
-  const posRes = await updateTableStatus(tableId, "OCCUPIED", posToken);
+  const posRes = await updateTableStatus(tableId, "OCCUPIED", posToken, session.userId);
   if (!posRes.ok) return posFailure(posRes);
 
   // Mark the waitlist entry as seated
