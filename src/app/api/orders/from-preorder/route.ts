@@ -95,6 +95,10 @@ export async function POST(request: Request) {
     );
     if (!createRes.ok) return posFailure(createRes);
 
+    // Body can be null if it was unreadable (e.g. timeout mid-body); never fire `undefined`.
+    if (!createRes.data?.id) {
+      return NextResponse.json({ error: "POS returned no order id" }, { status: 502 });
+    }
     firedOrderId = createRes.data.id;
     await prisma.pre_orders.update({
       where: { id: preOrder.id },

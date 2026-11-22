@@ -104,6 +104,17 @@ describe("POST /api/orders/from-preorder", () => {
     expect(update.mock.calls.some(([a]) => (a.data as { status?: string }).status === "FIRED")).toBe(false);
   });
 
+  it("returns 502 and never fires when the POS create response has no order id", async () => {
+    const m = stubPos({ "POST /api/orders": { status: 201, body: {} } });
+
+    const res = await fire();
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: "POS returned no order id" });
+    expect(calls(m)).toEqual(["POST /api/orders"]);
+    expect(update).not.toHaveBeenCalled();
+  });
+
   it("retry with a saved fired_order_id skips create, fires that order, then marks FIRED", async () => {
     findUnique.mockResolvedValue(preOrder({ fired_order_id: "pos-1" }) as never);
     const fetchMock = stubPos({
