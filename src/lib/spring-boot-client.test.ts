@@ -130,3 +130,22 @@ describe("posFailure", () => {
     expect(await res.json()).toEqual({ error: "POS error" });
   });
 });
+
+describe("updateTableStatus body", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  const sentBody = async (serverId?: string) => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await updateTableStatus("t1", "OCCUPIED", "jwt", serverId);
+    return JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+  };
+
+  it("sends serverId when given", async () => {
+    expect(await sentBody("u1")).toEqual({ status: "OCCUPIED", serverId: "u1" });
+  });
+});

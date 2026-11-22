@@ -111,14 +111,19 @@ export function posFailure(res: PosError): NextResponse {
 
 /* ---------- domain methods ---------- */
 
-/** PATCH /api/tables/{id}/status — update table status via POS state machine. */
+/**
+ * PATCH /api/tables/{id}/status — update table status via POS state machine.
+ * The POS keeps serverId on OCCUPIED and clears it on CLEANING/AVAILABLE.
+ */
 export function updateTableStatus(
   tableId: string,
   status: string,
   posToken?: string,
+  serverId?: string,
 ) {
   return posRequest("PATCH", `/api/tables/${tableId}/status`, posToken, {
     status,
+    ...(serverId && { serverId }),
   });
 }
 
