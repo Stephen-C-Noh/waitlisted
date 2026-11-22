@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { extractPosToken, posFailure, updateTableStatus } from "@/lib/spring-boot-client";
+import { extractPosToken, isPosIntegrationEnabled, posFailure, updateTableStatus } from "@/lib/spring-boot-client";
 
 describe("extractPosToken", () => {
   it("reads the pos-token cookie, keeping any '=' inside the JWT", () => {
@@ -151,5 +151,18 @@ describe("updateTableStatus body", () => {
 
   it("omits serverId when not given", async () => {
     expect(await sentBody()).toEqual({ status: "OCCUPIED" });
+  });
+});
+
+describe("isPosIntegrationEnabled", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("is false only when POS_INTEGRATION_ENABLED is the string 'false'", () => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "false");
+    expect(isPosIntegrationEnabled()).toBe(false);
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    expect(isPosIntegrationEnabled()).toBe(true);
+    vi.stubEnv("POS_INTEGRATION_ENABLED", undefined);
+    expect(isPosIntegrationEnabled()).toBe(true);
   });
 });

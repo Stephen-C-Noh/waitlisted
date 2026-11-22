@@ -13,7 +13,8 @@ import { NextResponse } from "next/server";
 const getBaseUrl = () =>
   process.env.SPRING_BOOT_URL ?? "http://localhost:8090";
 
-const isPosIntegrationEnabled = () =>
+/** False only in cloud mode (`POS_INTEGRATION_ENABLED=false`): no POS is reachable. */
+export const isPosIntegrationEnabled = () =>
   process.env.POS_INTEGRATION_ENABLED !== "false";
 
 /** Extract the pos-token cookie value from a raw Cookie header. */
@@ -55,7 +56,7 @@ async function posRequest<T = unknown>(
   posToken?: string,
   body?: unknown,
 ): Promise<PosResponse<T>> {
-  if (isPosIntegrationEnabled() == false) {
+  if (!isPosIntegrationEnabled()) {
     return { ok: false, status: 0, message: "POS integration disabled" };
   }
   try {
