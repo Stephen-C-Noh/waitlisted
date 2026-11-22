@@ -56,6 +56,20 @@ describe("POS requests (via updateTableStatus)", () => {
     expect(res).toEqual({ ok: false, status: 409, message: body.message });
   });
 
+  it.each([
+    ["an HTML page", "<html><body>404 Not Found</body></html>"],
+    ["JSON without a message", JSON.stringify({ status: 404, error: "Not Found" })],
+    ["JSON with a non-string message", JSON.stringify({ message: { code: 1 } })],
+  ])("never uses the raw body as the message when the POS error is %s", async (_, text) => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(text, { status: 404 })));
+
+    const res = await updateTableStatus("t1", "CLEANING", "jwt");
+
+    expect(res).toEqual({ ok: false, status: 404, message: "" });
+  });
+
   it("returns ok:false with status 0 when the POS is unreachable (fetch rejects)", async () => {
     vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
     vi.spyOn(console, "error").mockImplementation(() => {});

@@ -71,9 +71,11 @@ async function posRequest<T = unknown>(
         `[pos] ${method} ${path} failed: ${res.status}`,
         text,
       );
-      let message = text;
+      // Only a string `message` from the POS ErrorResponse; never raw HTML/JSON.
+      let message = "";
       try {
-        message = JSON.parse(text).message ?? text;
+        const m = JSON.parse(text).message;
+        if (typeof m === "string") message = m;
       } catch {}
       return { ok: false, status: res.status, message };
     }
