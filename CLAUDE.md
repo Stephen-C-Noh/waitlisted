@@ -29,6 +29,8 @@ Hybrid Next.js + Spring Boot system sharing one Postgres database:
 
 - **Reads** (menu, tables, waitlist) go directly through **Prisma** for speed.
 - **Writes with business logic** (table status changes on seat, create+fire order) go through the **Spring Boot POS** at `http://localhost:8090` so its state machine, Kafka events, and WebSocket broadcasts fire.
+- **Only the POS changes POS-owned tables** (`tables`, `orders`, `users`, ...). If a POS call fails (503 unreachable, POS 4xx passed through, 502 on POS 5xx/auth) the route returns the error via `posFailure()` and writes nothing; there is **no Prisma fallback**. `src/lib/no-pos-writes.test.ts` fails on any `prisma.<pos table>.create/update/...` or `$executeRaw` under `src/`.
+- **Cloud mode** (`POS_INTEGRATION_ENABLED=false`, no POS deployed): `DashboardPage` reads the flag on the server (`isPosIntegrationEnabled()`) and passes `posEnabled` down; Seat, Fire and table-status controls are disabled with the note in `src/lib/pos-mode.ts`. The 503 from the API stays as the safety net.
 - Prisma introspects existing POS tables (`prisma db pull`) and owns only three **new** tables: `waitlist_entries`, `pre_orders`, `pre_order_items`. FKs to POS tables (`tables`, `users`, `menu_items`) are enforced at app level only — do not add Prisma relations to introspected models or migrations will conflict.
 
 ### Route groups
@@ -53,7 +55,7 @@ Customers have no account: each `waitlist_entries` row carries a 64-hex `access_
 
 This is a load-bearing UX rule, not a cleanup candidate:
 
-1. **Seat guest** — updates table status via Spring Boot and sets `waitlist_entries.status = SEATED`. **Does not** touch the pre-order. This lets the server walk the party to the table and verbally confirm the order with the guest.
+1. **Seat guest** — updates table status via Spring Boot (`PATCH /api/tables/{id}/status` with `serverId` = the seating user; the POS records `current_server_id`) and, only if the POS succeeds, sets `waitlist_entries.status = SEATED`. **Does not** touch the pre-order. This lets the server walk the party to the table and verbally confirm the order with the guest.
 2. **Fire pre-order** — a distinct dashboard action. Prompts the acting staff member for their **4-digit PIN a second time**. The PIN is sent in the `POST /api/orders/from-preorder` body and re-verified server-side against `users.pin_hash` before the route calls Spring Boot's `POST /api/orders` + `/fire`. The route saves `fired_order_id` as soon as the POS creates the order (status stays `CONFIRMED`, so a retry fires that order instead of creating another); only after the POS fire succeeds does it set `pre_orders.status = FIRED` and `fired_by_user_id` (audit trail of who authorized the fire). So `fired_order_id` can be set on a `CONFIRMED` row; check `status`, not the id, to know whether it was fired.
 
 Never wire the "seat" action to automatically fire the pre-order, even for convenience — the second PIN gate exists so a kitchen ticket can't be created without a human confirming at that moment.
