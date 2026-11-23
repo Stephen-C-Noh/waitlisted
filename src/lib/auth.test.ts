@@ -27,8 +27,8 @@ beforeEach(() => {
   rows.length = 0;
   rows.push(user("u1", "9012"), user("u2", "3456"), user("u3", "7890", "INACTIVE"));
   // Honors the id and status filters of the where clause, like the real table would.
-  findFirst.mockImplementation((async ({ where }: { where: { id: string; status: string } }) =>
-    rows.find((r) => r.id === where.id && r.status === where.status) ?? null) as never);
+  findFirst.mockImplementation((async ({ where }: { where: { id: string; status?: string } }) =>
+    rows.find((r) => r.id === where.id && (where.status === undefined || r.status === where.status)) ?? null) as never);
 });
 
 describe("verifyPinForFire", () => {
@@ -38,5 +38,9 @@ describe("verifyPinForFire", () => {
 
   it("returns null when the PIN only matches a different active user", async () => {
     expect(await verifyPinForFire("3456", sessionOf("u1"))).toBeNull();
+  });
+
+  it("returns null for an inactive user with the correct PIN", async () => {
+    expect(await verifyPinForFire("7890", sessionOf("u3"))).toBeNull();
   });
 });
