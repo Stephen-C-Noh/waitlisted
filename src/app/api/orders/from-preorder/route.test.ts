@@ -10,6 +10,8 @@ vi.mock("@/lib/auth", () => ({
 
 import { prisma } from "@/lib/prisma";
 import { getStaffSession, verifyPinForFire } from "@/lib/auth";
+import { httpDuration } from "@/lib/metrics";
+import { countFor } from "@/lib/metrics-test-utils";
 import { POST } from "./route";
 
 const PRE_ORDER_ID = "11111111-1111-1111-1111-111111111111";
@@ -39,6 +41,7 @@ function fire() {
       headers: { cookie: "pos-token=jwt" },
       body: JSON.stringify({ preOrderId: PRE_ORDER_ID, pin: "1234" }),
     }),
+    undefined,
   );
 }
 
@@ -76,6 +79,15 @@ const calls = (m: ReturnType<typeof stubPos>) =>
   m.mock.calls.map(([url, init]) => `${init?.method} ${new URL(url).pathname}`);
 
 describe("POST /api/orders/from-preorder", () => {
+  it("records a POS-down 503 under the route template", async () => {
+    httpDuration.reset();
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+    await fire();
+
+    expect(await countFor("/api/orders/from-preorder", "503")).toBe(1);
+  });
+
   it("returns 503 and writes nothing when the POS is unreachable on create", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
 
