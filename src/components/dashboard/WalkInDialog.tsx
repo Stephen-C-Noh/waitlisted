@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Input } from "@/components/ui";
+import { POS_DISABLED_NOTE } from "@/lib/pos-mode";
 
 interface Table {
   id: string;
@@ -12,11 +13,12 @@ interface Table {
 
 interface Props {
   table: Table;
+  posEnabled: boolean;
   onClose: () => void;
   onSeated: () => void;
 }
 
-export function WalkInDialog({ table, onClose, onSeated }: Props) {
+export function WalkInDialog({ table, posEnabled, onClose, onSeated }: Props) {
   const [guestName, setGuestName] = useState("");
   const [partySize, setPartySize] = useState(String(table.capacity));
   const [submitting, setSubmitting] = useState(false);
@@ -65,6 +67,9 @@ export function WalkInDialog({ table, onClose, onSeated }: Props) {
       });
 
       if (!seatRes.ok) {
+        // Cancel the entry we just made so a failed seat (POS down) does not
+        // leave a stray walk-in on the waitlist; best effort.
+        await fetch(`/api/waitlist/${id}`, { method: "DELETE" }).catch(() => {});
         const data = await seatRes.json().catch(() => null);
         setError(data?.error ?? "Failed to seat");
         return;
@@ -114,6 +119,12 @@ export function WalkInDialog({ table, onClose, onSeated }: Props) {
           />
         </div>
 
+        {!posEnabled && (
+          <p className="mt-4 text-on-surface-variant text-sm font-label">
+            {POS_DISABLED_NOTE}
+          </p>
+        )}
+
         {error && (
           <p className="mt-4 text-error text-sm font-label">{error}</p>
         )}
@@ -122,7 +133,7 @@ export function WalkInDialog({ table, onClose, onSeated }: Props) {
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button disabled={submitting} onClick={handleSeat}>
+          <Button disabled={!posEnabled || submitting} onClick={handleSeat}>
             {submitting ? "Seating…" : "Seat Now"}
           </Button>
         </div>

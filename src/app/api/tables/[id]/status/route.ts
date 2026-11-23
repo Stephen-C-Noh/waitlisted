@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStaffSession } from "@/lib/auth";
-import { updateTableStatus, extractPosToken } from "@/lib/spring-boot-client";
+import { updateTableStatus, extractPosToken, posFailure } from "@/lib/spring-boot-client";
 
 /**
  * Valid transitions:
@@ -56,20 +56,10 @@ export async function PATCH(
     );
   }
 
-  // Try Spring Boot first, fallback to local
+  // Only the POS changes table state; if it fails, nothing is written.
   const posToken = extractPosToken(request);
   const posRes = await updateTableStatus(id, body.status, posToken);
-
-  if (!posRes.ok) {
-    await prisma.tables.update({
-      where: { id },
-      data: {
-        status: body.status,
-        current_server_id:
-          body.status === "AVAILABLE" ? null : table.current_server_id,
-      },
-    });
-  }
+  if (!posRes.ok) return posFailure(posRes);
 
   const updated = await prisma.tables.findUnique({ where: { id } });
   return NextResponse.json(updated);

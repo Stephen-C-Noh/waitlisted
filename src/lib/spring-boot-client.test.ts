@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { extractPosToken, posFailure, updateTableStatus } from "@/lib/spring-boot-client";
+import { extractPosToken, isPosIntegrationEnabled, posFailure, updateTableStatus } from "@/lib/spring-boot-client";
 
 describe("extractPosToken", () => {
   it("reads the pos-token cookie, keeping any '=' inside the JWT", () => {
@@ -128,5 +128,41 @@ describe("posFailure", () => {
 
     expect(res.status).toBe(502);
     expect(await res.json()).toEqual({ error: "POS error" });
+  });
+});
+
+describe("updateTableStatus body", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  const sentBody = async (serverId?: string) => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await updateTableStatus("t1", "OCCUPIED", "jwt", serverId);
+    return JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+  };
+
+  it("sends serverId when given", async () => {
+    expect(await sentBody("u1")).toEqual({ status: "OCCUPIED", serverId: "u1" });
+  });
+
+  it("omits serverId when not given", async () => {
+    expect(await sentBody()).toEqual({ status: "OCCUPIED" });
+  });
+});
+
+describe("isPosIntegrationEnabled", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("is false only when POS_INTEGRATION_ENABLED is the string 'false'", () => {
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "false");
+    expect(isPosIntegrationEnabled()).toBe(false);
+    vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
+    expect(isPosIntegrationEnabled()).toBe(true);
+    vi.stubEnv("POS_INTEGRATION_ENABLED", undefined);
+    expect(isPosIntegrationEnabled()).toBe(true);
   });
 });

@@ -26,6 +26,8 @@ interface SelectModeProps extends BaseProps {
 interface ManageModeProps extends BaseProps {
   /** Manage mode: advance table lifecycle (OCCUPIED→CLEANING→AVAILABLE). */
   mode: "manage";
+  /** False in cloud mode: status changes and walk-in seating need the POS. */
+  disabled?: boolean;
   onStatusChange: (id: string, newStatus: string) => void;
   /** Tap an available table to seat a walk-in. */
   onSeatWalkIn?: (table: Table) => void;
@@ -136,6 +138,7 @@ export function TableFloorMap(props: Props) {
       const state = getSelectState(table, props.partySize, props.selectedId);
       return state === "selectable" || state === "selected";
     }
+    if (props.disabled) return false;
     return (
       table.status === "OCCUPIED" ||
       table.status === "CLEANING" ||
@@ -152,7 +155,7 @@ export function TableFloorMap(props: Props) {
 
   function getTooltip(table: Table): string {
     const base = `${table.table_number} — ${table.capacity} seats`;
-    if (props.mode === "manage") {
+    if (props.mode === "manage" && !props.disabled) {
       if (table.status === "OCCUPIED") return `${base} · Tap to mark needs cleaning`;
       if (table.status === "CLEANING") return `${base} · Tap to mark available`;
       return `${base} · Tap to seat walk-in`;
@@ -195,7 +198,7 @@ export function TableFloorMap(props: Props) {
                     disabled={!clickable}
                     onClick={() => handleClick(table)}
                     className={cn(
-                      "border-2 flex flex-col items-center justify-center gap-0.5",
+                      "border-2 flex flex-col items-center justify-center gap-0.5 disabled:cursor-not-allowed disabled:opacity-60",
                       shapeClass(table.capacity),
                       getStyle(table),
                     )}

@@ -5,15 +5,16 @@ import { NextResponse } from "next/server";
  *
  * Write operations (table status, orders) go through Spring Boot so its
  * state machine, Kafka events, and WebSocket broadcasts fire correctly.
- * Failures come back as PosError. The fire route turns them into HTTP
- * responses with posFailure(); the seat and table-status routes still fall
- * back to Prisma writes on failure (including the 8 s timeout) until Phase 4.
+ * Failures come back as PosError. Every POS-writing route (fire, seat, table
+ * status) turns them into HTTP responses with posFailure(). No route falls back to Prisma writes for POS
+ * tables: if the POS call fails (including the 8 s timeout), nothing changes.
  */
 
 const getBaseUrl = () =>
   process.env.SPRING_BOOT_URL ?? "http://localhost:8090";
 
-const isPosIntegrationEnabled = () =>
+/** False only in cloud mode (`POS_INTEGRATION_ENABLED=false`): no POS is reachable. */
+export const isPosIntegrationEnabled = () =>
   process.env.POS_INTEGRATION_ENABLED !== "false";
 
 /** Extract the pos-token cookie value from a raw Cookie header. */
@@ -55,7 +56,7 @@ async function posRequest<T = unknown>(
   posToken?: string,
   body?: unknown,
 ): Promise<PosResponse<T>> {
-  if (isPosIntegrationEnabled() == false) {
+  if (!isPosIntegrationEnabled()) {
     return { ok: false, status: 0, message: "POS integration disabled" };
   }
   try {
@@ -111,14 +112,19 @@ export function posFailure(res: PosError): NextResponse {
 
 /* ---------- domain methods ---------- */
 
-/** PATCH /api/tables/{id}/status — update table status via POS state machine. */
+/**
+ * PATCH /api/tables/{id}/status — update table status via POS state machine.
+ * The POS keeps serverId on OCCUPIED and clears it on CLEANING/AVAILABLE.
+ */
 export function updateTableStatus(
   tableId: string,
   status: string,
   posToken?: string,
+  serverId?: string,
 ) {
   return posRequest("PATCH", `/api/tables/${tableId}/status`, posToken, {
     status,
+    ...(serverId && { serverId }),
   });
 }
 

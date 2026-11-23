@@ -150,7 +150,10 @@ separate React frontend - all in under a second.
 - **Reads** (menu, tables, waitlist) go directly through Prisma for speed.
 - **Writes with business logic** (table status, create + fire order) go
   through the Spring Boot POS so its state machine, Kafka outbox, and
-  WebSocket broadcasts fire correctly.
+  WebSocket broadcasts fire correctly. If the POS is down these routes
+  return an error (503 when unreachable) and change nothing; there is no
+  Prisma fallback. With `POS_INTEGRATION_ENABLED=false` (cloud deploy, no
+  POS) the dashboard disables Seat, Fire and table-status actions.
 - Prisma owns three new tables (`waitlist_entries`, `pre_orders`,
   `pre_order_items`) and introspects the rest of the schema from the POS.
 - Two JWTs are issued on login: the Next.js staff token (signed with `jose`)

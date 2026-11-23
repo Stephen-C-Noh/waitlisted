@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui";
+import { POS_DISABLED_NOTE } from "@/lib/pos-mode";
 import { TableFloorMap } from "./TableFloorMap";
 
 interface Table {
@@ -22,11 +23,12 @@ interface Entry {
 interface Props {
   entry: Entry;
   tables: Table[];
+  posEnabled: boolean;
   onClose: () => void;
   onSeated: () => void;
 }
 
-export function SeatGuestModal({ entry, tables, onClose, onSeated }: Props) {
+export function SeatGuestModal({ entry, tables, posEnabled, onClose, onSeated }: Props) {
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -92,6 +94,12 @@ export function SeatGuestModal({ entry, tables, onClose, onSeated }: Props) {
           onSelect={setSelectedTableId}
         />
 
+        {!posEnabled && (
+          <p className="mt-4 text-on-surface-variant text-sm font-label">
+            {POS_DISABLED_NOTE}
+          </p>
+        )}
+
         {error && (
           <p className="mt-4 text-error text-sm font-label">{error}</p>
         )}
@@ -101,7 +109,7 @@ export function SeatGuestModal({ entry, tables, onClose, onSeated }: Props) {
             Cancel
           </Button>
           <Button
-            disabled={!selectedTableId || submitting || availableCount === 0}
+            disabled={!posEnabled || !selectedTableId || submitting || availableCount === 0}
             onClick={handleSeat}
           >
             {submitting ? "Seating…" : "Confirm Seat"}

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStaffSession } from "@/lib/auth";
 import { SeatGuestBody } from "@/lib/validations";
-import { updateTableStatus, extractPosToken } from "@/lib/spring-boot-client";
+import { updateTableStatus, extractPosToken, posFailure } from "@/lib/spring-boot-client";
 
 /**
  * Staff action: seat a guest.
@@ -60,16 +60,10 @@ export async function POST(
     );
   }
 
-  // Update table status via Spring Boot POS (fallback to local on failure)
+  // Only the POS changes table state; if it fails, nothing is written.
   const posToken = extractPosToken(request);
-  const posRes = await updateTableStatus(tableId, "OCCUPIED", posToken);
-
-  if (!posRes.ok) {
-    await prisma.tables.update({
-      where: { id: tableId },
-      data: { status: "OCCUPIED", current_server_id: session.userId },
-    });
-  }
+  const posRes = await updateTableStatus(tableId, "OCCUPIED", posToken, session.userId);
+  if (!posRes.ok) return posFailure(posRes);
 
   // Mark the waitlist entry as seated
   const updated = await prisma.waitlist_entries.update({
