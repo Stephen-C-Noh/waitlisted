@@ -67,6 +67,9 @@ export function WalkInDialog({ table, posEnabled, onClose, onSeated }: Props) {
       });
 
       if (!seatRes.ok) {
+        // Cancel the entry we just made so a failed seat (POS down) does not
+        // leave a stray walk-in on the waitlist; best effort.
+        await fetch(`/api/waitlist/${id}`, { method: "DELETE" }).catch(() => {});
         const data = await seatRes.json().catch(() => null);
         setError(data?.error ?? "Failed to seat");
         return;
