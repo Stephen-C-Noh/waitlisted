@@ -124,7 +124,8 @@ export const UpsertPreOrderBody = z.object({
 export type UpsertPreOrderBody = z.infer<typeof UpsertPreOrderBody>;
 
 // "Fire to kitchen": the second PIN check. The PIN must be re-verified
-// server-side against users.pin_hash before Spring Boot is called.
+// server-side against the logged-in user's own users.pin_hash before Spring
+// Boot is called.
 export const FirePreOrderBody = z.object({
   preOrderId: UUID,
   pin: PIN,

@@ -6,7 +6,7 @@ import { createOrder, fireOrder, extractPosToken, posFailure } from "@/lib/sprin
 
 /**
  * POST: fire a pre-order to the kitchen.
- * Requires staff session + a second PIN verification.
+ * Requires staff session + a second PIN verification (the session user's own PIN).
  * Calls Spring Boot POST /api/orders + POST /api/orders/{id}/fire.
  */
 export async function POST(request: Request) {
@@ -30,8 +30,8 @@ export async function POST(request: Request) {
     );
   }
 
-  // Second PIN gate
-  const fireAuth = await verifyPinForFire(parsed.data.pin);
+  // Second PIN gate: only the logged-in user's own PIN passes
+  const fireAuth = await verifyPinForFire(parsed.data.pin, session);
   if (!fireAuth) {
     return NextResponse.json({ error: "Invalid PIN" }, { status: 401 });
   }
@@ -44,7 +44,6 @@ export async function POST(request: Request) {
           menu_item_id: true,
           quantity: true,
           special_instructions: true,
-          unit_price: true,
         },
       },
       waitlist_entry: {
@@ -83,12 +82,11 @@ export async function POST(request: Request) {
     const createRes = await createOrder(
       {
         tableId,
-        userId: fireAuth.userId,
+        serverId: session.userId,
         items: preOrder.items.map((i) => ({
           menuItemId: i.menu_item_id,
           quantity: i.quantity,
           specialInstructions: i.special_instructions,
-          unitPrice: Number(i.unit_price),
         })),
       },
       posToken,
@@ -102,9 +100,14 @@ export async function POST(request: Request) {
     firedOrderId = createRes.data.id;
     await prisma.pre_orders.update({
       where: { id: preOrder.id },
-      data: { fired_order_id: firedOrderId },
+      // The creator is the POS order's serverId; save it now so a retry by
+      // someone else cannot make fired_by_user_id disagree with the POS.
+      data: { fired_order_id: firedOrderId, fired_by_user_id: session.userId },
     });
   }
+
+  // Whoever created the POS order (older rows: whoever fires now).
+  const firedByUserId = preOrder.fired_by_user_id ?? fireAuth.userId;
 
   // 2. Fire the order
   const fireRes = await fireOrder(firedOrderId, posToken);
@@ -115,13 +118,13 @@ export async function POST(request: Request) {
     where: { id: preOrder.id },
     data: {
       status: "FIRED",
-      fired_by_user_id: fireAuth.userId,
+      fired_by_user_id: firedByUserId,
     },
   });
 
   return NextResponse.json({
     status: updated.status,
     firedOrderId,
-    firedByUserId: fireAuth.userId,
+    firedByUserId,
   });
 }

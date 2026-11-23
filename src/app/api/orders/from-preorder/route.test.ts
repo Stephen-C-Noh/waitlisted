@@ -14,6 +14,8 @@ import { POST } from "./route";
 
 const PRE_ORDER_ID = "11111111-1111-1111-1111-111111111111";
 
+const SESSION = { userId: "u1", username: "mgr", fullName: "Mgr", role: "MANAGER" };
+
 const findUnique = vi.mocked(prisma.pre_orders.findUnique);
 const update = vi.mocked(prisma.pre_orders.update);
 
@@ -43,12 +45,8 @@ function fire() {
 beforeEach(() => {
   vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
   vi.spyOn(console, "error").mockImplementation(() => {});
-  vi.mocked(getStaffSession).mockResolvedValue({
-    userId: "u0", username: "host", fullName: "Host", role: "HOST",
-  } as never);
-  vi.mocked(verifyPinForFire).mockResolvedValue({
-    userId: "u1", username: "mgr", fullName: "Mgr", role: "MANAGER",
-  } as never);
+  vi.mocked(getStaffSession).mockResolvedValue(SESSION as never);
+  vi.mocked(verifyPinForFire).mockResolvedValue(SESSION as never);
   findUnique.mockResolvedValue(preOrder() as never);
   update.mockImplementation((async ({ data }: { data: Record<string, unknown> }) => ({
     status: data.status ?? "CONFIRMED",
@@ -88,7 +86,7 @@ describe("POST /api/orders/from-preorder", () => {
     expect(update).not.toHaveBeenCalled();
   });
 
-  it("returns 502, keeps the POS order id and does not mark FIRED when fire fails after create", async () => {
+  it("returns 502, keeps the POS order id and its creator and does not mark FIRED when fire fails after create", async () => {
     stubPos({
       "POST /api/orders": { status: 201, body: { id: "pos-1" } },
       "POST /api/orders/pos-1/fire": { status: 500, body: {} },
@@ -99,7 +97,7 @@ describe("POST /api/orders/from-preorder", () => {
     expect(res.status).toBe(502);
     expect(update).toHaveBeenCalledWith({
       where: { id: PRE_ORDER_ID },
-      data: { fired_order_id: "pos-1" },
+      data: { fired_order_id: "pos-1", fired_by_user_id: "u1" },
     });
     expect(update.mock.calls.some(([a]) => (a.data as { status?: string }).status === "FIRED")).toBe(false);
   });
@@ -129,6 +127,22 @@ describe("POST /api/orders/from-preorder", () => {
       where: { id: PRE_ORDER_ID },
       data: { status: "FIRED", fired_by_user_id: "u1" },
     });
+  });
+
+  it("retry by another user keeps the creator as fired_by_user_id (matches the POS serverId)", async () => {
+    findUnique.mockResolvedValue(
+      preOrder({ fired_order_id: "pos-1", fired_by_user_id: "u-creator" }) as never,
+    );
+    stubPos({ "POST /api/orders/pos-1/fire": { status: 200 } });
+
+    const res = await fire();
+
+    expect(res.status).toBe(200);
+    expect(update).toHaveBeenCalledWith({
+      where: { id: PRE_ORDER_ID },
+      data: { status: "FIRED", fired_by_user_id: "u-creator" },
+    });
+    expect((await res.json()).firedByUserId).toBe("u-creator");
   });
 
   it("returns 409 and never calls the POS when the guest is not seated", async () => {
@@ -187,5 +201,53 @@ describe("POST /api/orders/from-preorder", () => {
       error: "POS session expired - sign out and back in",
     });
     expect(update).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 Invalid PIN and touches neither the POS nor the DB when the PIN is wrong", async () => {
+    vi.mocked(verifyPinForFire).mockResolvedValue(null);
+    const fetchMock = stubPos({});
+
+    const res = await fire();
+
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "Invalid PIN" });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("checks the PIN against the logged-in session user", async () => {
+    stubPos({
+      "POST /api/orders": { status: 201, body: { id: "pos-1" } },
+      "POST /api/orders/pos-1/fire": { status: 200 },
+    });
+
+    await fire();
+
+    expect(verifyPinForFire).toHaveBeenCalledWith("1234", SESSION);
+  });
+
+  it("sends the session user as serverId (and no userId) to the POS create call", async () => {
+    const fetchMock = stubPos({
+      "POST /api/orders": { status: 201, body: { id: "pos-1" } },
+      "POST /api/orders/pos-1/fire": { status: 200 },
+    });
+
+    await fire();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1]?.body as string);
+    expect(body.serverId).toBe(SESSION.userId);
+    expect(body).not.toHaveProperty("userId");
+  });
+
+  it("sends items without unitPrice (the POS prices from the menu)", async () => {
+    const fetchMock = stubPos({
+      "POST /api/orders": { status: 201, body: { id: "pos-1" } },
+      "POST /api/orders/pos-1/fire": { status: 200 },
+    });
+
+    await fire();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1]?.body as string);
+    expect(body.items).toEqual([{ menuItemId: "m1", quantity: 2, specialInstructions: null }]);
   });
 });

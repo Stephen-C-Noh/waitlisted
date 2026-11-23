@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Status
 
-This repo currently contains **only specs and design assets** — no application code, no `package.json`, no build system yet. The Next.js app described below has not been scaffolded.
+The Next.js app is built and running (`src/`, `npm run dev`, Vitest via `npm test`). `Plans/` and `Guide/` hold the original specs and design assets; where they disagree with the code, the code wins.
 
 **Source-of-truth order for specs** (newer overrides older):
 1. `Plans/waitlisted-project-description.md` — current stack, routes, auth model (authoritative)
@@ -23,7 +23,7 @@ Note: the app is named **Waitlisted**. The older `implementation-plan.md` refers
 
 Next.js **16.2.1** (App Router) + TypeScript 5 + Tailwind **v4** (CSS-first via `@theme` in `globals.css`, no `tailwind.config.*`) + **Prisma 7** with `@prisma/adapter-pg` + PostgreSQL 16 + TanStack Query v5 + Zustand v5 + Framer Motion v12 + `jose` v6 + `bcryptjs` v3 + Zod v4. Middleware file is **`proxy.ts`** (Next.js 16), not `middleware.ts`.
 
-## Architecture (once scaffolded)
+## Architecture
 
 Hybrid Next.js + Spring Boot system sharing one Postgres database:
 
@@ -56,7 +56,7 @@ Customers have no account: each `waitlist_entries` row carries a 64-hex `access_
 This is a load-bearing UX rule, not a cleanup candidate:
 
 1. **Seat guest** — updates table status via Spring Boot (`PATCH /api/tables/{id}/status` with `serverId` = the seating user; the POS records `current_server_id`) and, only if the POS succeeds, sets `waitlist_entries.status = SEATED`. **Does not** touch the pre-order. This lets the server walk the party to the table and verbally confirm the order with the guest.
-2. **Fire pre-order** — a distinct dashboard action. Prompts the acting staff member for their **4-digit PIN a second time**. The PIN is sent in the `POST /api/orders/from-preorder` body and re-verified server-side against `users.pin_hash` before the route calls Spring Boot's `POST /api/orders` + `/fire`. The route saves `fired_order_id` as soon as the POS creates the order (status stays `CONFIRMED`, so a retry fires that order instead of creating another); only after the POS fire succeeds does it set `pre_orders.status = FIRED` and `fired_by_user_id` (audit trail of who authorized the fire). So `fired_order_id` can be set on a `CONFIRMED` row; check `status`, not the id, to know whether it was fired.
+2. **Fire pre-order** — a distinct dashboard action. Prompts the acting staff member for their **4-digit PIN a second time**. The PIN is sent in the `POST /api/orders/from-preorder` body and re-verified server-side against the **logged-in user's own** `users.pin_hash` (looked up by the session `userId`, never a scan of all users, so another staff member's PIN is rejected with 401 "Invalid PIN") before the route calls Spring Boot's `POST /api/orders` + `/fire`. The create payload carries `serverId` = the session user (no `unitPrice`; the POS prices from the menu). The route saves `fired_order_id` together with `fired_by_user_id` = the user who created the POS order (always equal to `orders.server_id`) as soon as the POS creates it (status stays `CONFIRMED`, so a retry fires that order instead of creating another, and keeps `fired_by_user_id` even if a different user retries); only after the POS fire succeeds does it set `pre_orders.status = FIRED`. Who approved a retry is not recorded (one column; add one if that audit is ever needed). So `fired_order_id` can be set on a `CONFIRMED` row; check `status`, not the id, to know whether it was fired.
 
 Never wire the "seat" action to automatically fire the pre-order, even for convenience — the second PIN gate exists so a kitchen ticket can't be created without a human confirming at that moment.
 
@@ -66,7 +66,7 @@ The app runs on a touch-only tablet. `useIdleDetection` listens to **`touchstart
 
 ### Wait time algorithm
 
-Lives in `src/lib/wait-time.ts` (to be created). Constants reflect high-end dining: `AVG_DINING_DURATION=90`, `TABLE_TURNOVER_BUFFER=10`, `avgRemainingTime=50`. Output is clamped `[5, 150]`, rounded to nearest 5, and displayed as a ±5 range. See plan §8 for the full formula.
+Lives in `src/lib/wait-time.ts`. Constants reflect high-end dining: `AVG_DINING_DURATION=90`, `TABLE_TURNOVER_BUFFER=10`, `avgRemainingTime=50`. Output is clamped `[5, 150]`, rounded to nearest 5, and displayed as a ±5 range. See plan §8 for the full formula.
 
 ## Bootstrapping commands (per the plan)
 
@@ -80,4 +80,4 @@ Migrations: `prisma/migrations/` holds only the three waitlist tables; on a fres
 
 Required env (`.env.local`): `DATABASE_URL` (shared POS Postgres), `JWT_SECRET`, `SPRING_BOOT_URL=http://localhost:8090`, `NEXT_PUBLIC_BASE_URL`, `SMS_PROVIDER=console`.
 
-No lint/test/run commands exist yet — add them here once the Next.js project is scaffolded.
+Commands: `npm run dev` (dev server; it rewrites `AGENTS.md`, revert that), `npm test` (Vitest), `npm run lint`, `npx tsc --noEmit`.

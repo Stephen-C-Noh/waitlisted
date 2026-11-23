@@ -101,14 +101,27 @@ export async function findUserByPin(pin: string): Promise<StaffSession | null> {
 }
 
 /**
- * Second PIN gate: verify that a given PIN matches the user who is making
- * the call. Used before firing a pre-order to the kitchen. Returns the
- * matched session so the caller can record `fired_by_user_id`.
+ * Second PIN gate: verify the PIN against the logged-in user only (never a
+ * scan of all users). Used before firing a pre-order to the kitchen. Returns
+ * the session so the caller can record `fired_by_user_id`.
  */
 export async function verifyPinForFire(
   pin: string,
+  session: StaffSession,
 ): Promise<StaffSession | null> {
-  return findUserByPin(pin);
+  if (!/^\d{4}$/.test(pin)) return null;
+
+  const user = await prisma.users.findFirst({
+    where: {
+      id: session.userId,
+      status: "ACTIVE",
+      pin_hash: { not: null },
+      role: { not: "KITCHEN" },
+    },
+    select: { pin_hash: true },
+  });
+  if (!user?.pin_hash) return null;
+  return (await bcrypt.compare(pin, user.pin_hash)) ? session : null;
 }
 
 /**
