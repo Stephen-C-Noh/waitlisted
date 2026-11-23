@@ -43,4 +43,12 @@ describe("verifyPinForFire", () => {
   it("returns null for an inactive user with the correct PIN", async () => {
     expect(await verifyPinForFire("7890", sessionOf("u3"))).toBeNull();
   });
+
+  it("returns null without a DB call when the PIN is not 4 digits", async () => {
+    for (const pin of ["901", "90123", "90a2", ""]) {
+      expect(await verifyPinForFire(pin, sessionOf("u1"))).toBeNull();
+    }
+    expect(findFirst).not.toHaveBeenCalled();
+    expect(findMany).not.toHaveBeenCalled();
+  });
 });
