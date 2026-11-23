@@ -37,6 +37,12 @@ describe("GET /api/metrics with METRICS_TOKEN set", () => {
     expect(res.status).toBe(200);
     expect(await res.text()).toContain("process_cpu");
   });
+
+  it("ignores whitespace around the configured token (secret files end in a newline)", async () => {
+    vi.stubEnv("METRICS_TOKEN", "s3cret\n");
+
+    expect((await scrape("Bearer s3cret")).status).toBe(200);
+  });
 });
 
 describe("GET /api/metrics without METRICS_TOKEN", () => {

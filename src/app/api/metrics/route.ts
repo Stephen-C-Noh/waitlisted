@@ -10,7 +10,8 @@ function authorized(request: Request, token: string): boolean {
 }
 
 export async function GET(request: Request) {
-    const token = process.env.METRICS_TOKEN;
+    // Trim: tokens mounted from secret files usually end in a newline.
+    const token = process.env.METRICS_TOKEN?.trim();
     if (!token && process.env.NODE_ENV === "production") {
         return new Response(null, { status: 404 });
     }
