@@ -132,9 +132,9 @@ A short scripted flow that exercises every piece of the system:
 4. **Staff** opens http://localhost:3000/admin/login in a second browser
    window. PIN `1234`. The dashboard shows the new waitlist entry.
 5. **Staff** uses the seat action on the entry and picks an available
-   table. The table turns OCCUPIED; the guest's status page flips to
-   "Seated"; remaining guests' wait estimates are recalculated on their
-   next poll.
+   table. The table turns OCCUPIED; the guest's status page switches to
+   "Entry Unavailable: This entry has been seated" on its next poll;
+   remaining guests' wait estimates are recalculated on theirs.
 6. **Staff** opens the seated guest's pre-order, taps **Fire to Kitchen**,
    and re-enters their PIN (the second-PIN gate prevents accidental fires).
 7. **Kitchen Display** at http://localhost:5173/kds (log in with PIN
