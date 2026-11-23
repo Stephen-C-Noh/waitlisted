@@ -7,8 +7,9 @@ import {
   POS_COOKIE,
   staffCookieOptions,
 } from "@/lib/auth";
+import { withMetrics } from "@/lib/metrics";
 
-export async function POST(request: Request) {
+export const POST = withMetrics("/api/auth/login", async (request: Request) => {
   let raw: unknown;
   try {
     raw = await request.json();
@@ -51,4 +52,4 @@ export async function POST(request: Request) {
   }
 
   return response;
-}
+});

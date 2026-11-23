@@ -14,6 +14,8 @@ vi.mock("@/lib/auth", () => ({ getStaffSession: vi.fn() }));
 
 import { prisma } from "@/lib/prisma";
 import { getStaffSession } from "@/lib/auth";
+import { httpDuration } from "@/lib/metrics";
+import { countFor } from "@/lib/metrics-test-utils";
 import { PATCH } from "./route";
 
 const TABLE_ID = "22222222-2222-2222-2222-222222222222";
@@ -49,6 +51,15 @@ afterEach(() => {
 });
 
 describe("PATCH /api/tables/[id]/status", () => {
+  it("records a POS-down 503 under the route template", async () => {
+    httpDuration.reset();
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+    await setStatus("CLEANING");
+
+    expect(await countFor("/api/tables/[id]/status", "503")).toBe(1);
+  });
+
   it("returns 503 and writes nothing when the POS is unreachable", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
 

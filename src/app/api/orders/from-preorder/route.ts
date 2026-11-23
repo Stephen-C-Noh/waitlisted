@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStaffSession, verifyPinForFire } from "@/lib/auth";
 import { FirePreOrderBody } from "@/lib/validations";
+import { withMetrics } from "@/lib/metrics";
 import { createOrder, fireOrder, extractPosToken, posFailure } from "@/lib/spring-boot-client";
 
 /**
@@ -9,7 +10,7 @@ import { createOrder, fireOrder, extractPosToken, posFailure } from "@/lib/sprin
  * Requires staff session + a second PIN verification (the session user's own PIN).
  * Calls Spring Boot POST /api/orders + POST /api/orders/{id}/fire.
  */
-export async function POST(request: Request) {
+export const POST = withMetrics("/api/orders/from-preorder", async (request: Request) => {
   const session = await getStaffSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -127,4 +128,4 @@ export async function POST(request: Request) {
     firedOrderId,
     firedByUserId,
   });
-}
+});
