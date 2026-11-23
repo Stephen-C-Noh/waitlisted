@@ -41,7 +41,7 @@ Hybrid Next.js + Spring Boot system sharing one Postgres database:
 
 ### Metrics
 
-Wrap every API route handler in `withMetrics("<route template>", handler)` from `src/lib/metrics.ts`, using the template (`/api/waitlist/[id]/seat`), never the concrete URL, so the `route` label stays bounded.
+Wrap every POS-writing route, the login route and the waitlist create/list/status routes (and any new route of those kinds) in `withMetrics("<route template>", handler)` from `src/lib/metrics.ts`, using the template (`/api/waitlist/[id]/seat`), never the concrete URL, so the `route` label stays bounded. Other routes (health, menu, reads) are deliberately unwrapped (plan Decision 2).
 
 ### Polling cadence
 

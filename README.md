@@ -241,10 +241,12 @@ Guide/
 
 ## Metrics
 
-`GET /api/metrics` serves Prometheus metrics (request duration per route
-template and status, plus Node defaults). Set `METRICS_TOKEN` to require
+`GET /api/metrics` serves Prometheus metrics: request duration by route
+template and status for the waitlist create/list/status, seat, table status,
+fire and login routes, plus Node defaults. Set `METRICS_TOKEN` to require
 `Authorization: Bearer <token>` (401 otherwise). With no token it is open
-outside production and returns 404 in production. Prometheus sends the token
+outside production and returns 404 in production, which includes the Docker
+image (`NODE_ENV=production`), so any containerized deploy needs the token. Prometheus sends the token
 with `authorization: { credentials: <token> }` in the scrape config.
 
 ## Design system

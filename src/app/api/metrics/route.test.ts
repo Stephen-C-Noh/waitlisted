@@ -64,7 +64,7 @@ describe("GET /api/metrics without METRICS_TOKEN", () => {
     expect(await res.text()).not.toContain("process_cpu");
   });
 
-  it("stays open outside production (local dev, compose Prometheus)", async () => {
+  it("stays open outside production (local `next dev`)", async () => {
     vi.stubEnv("METRICS_TOKEN", "");
     vi.stubEnv("NODE_ENV", "development");
 
