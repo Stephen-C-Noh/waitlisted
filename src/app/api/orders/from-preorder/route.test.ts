@@ -129,6 +129,22 @@ describe("POST /api/orders/from-preorder", () => {
     });
   });
 
+  it("retry by another user keeps the creator as fired_by_user_id (matches the POS serverId)", async () => {
+    findUnique.mockResolvedValue(
+      preOrder({ fired_order_id: "pos-1", fired_by_user_id: "u-creator" }) as never,
+    );
+    stubPos({ "POST /api/orders/pos-1/fire": { status: 200 } });
+
+    const res = await fire();
+
+    expect(res.status).toBe(200);
+    expect(update).toHaveBeenCalledWith({
+      where: { id: PRE_ORDER_ID },
+      data: { status: "FIRED", fired_by_user_id: "u-creator" },
+    });
+    expect((await res.json()).firedByUserId).toBe("u-creator");
+  });
+
   it("returns 409 and never calls the POS when the guest is not seated", async () => {
     findUnique.mockResolvedValue(
       preOrder({ waitlist_entry: { id: "w1", seated_table_id: null } }) as never,

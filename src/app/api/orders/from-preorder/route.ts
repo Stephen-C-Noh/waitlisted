@@ -106,6 +106,9 @@ export async function POST(request: Request) {
     });
   }
 
+  // Whoever created the POS order (older rows: whoever fires now).
+  const firedByUserId = preOrder.fired_by_user_id ?? fireAuth.userId;
+
   // 2. Fire the order
   const fireRes = await fireOrder(firedOrderId, posToken);
   if (!fireRes.ok) return posFailure(fireRes);
@@ -115,13 +118,13 @@ export async function POST(request: Request) {
     where: { id: preOrder.id },
     data: {
       status: "FIRED",
-      fired_by_user_id: fireAuth.userId,
+      fired_by_user_id: firedByUserId,
     },
   });
 
   return NextResponse.json({
     status: updated.status,
     firedOrderId,
-    firedByUserId: fireAuth.userId,
+    firedByUserId,
   });
 }
