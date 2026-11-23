@@ -155,7 +155,7 @@ export function TableFloorMap(props: Props) {
 
   function getTooltip(table: Table): string {
     const base = `${table.table_number} — ${table.capacity} seats`;
-    if (props.mode === "manage") {
+    if (props.mode === "manage" && !props.disabled) {
       if (table.status === "OCCUPIED") return `${base} · Tap to mark needs cleaning`;
       if (table.status === "CLEANING") return `${base} · Tap to mark available`;
       return `${base} · Tap to seat walk-in`;
@@ -198,7 +198,7 @@ export function TableFloorMap(props: Props) {
                     disabled={!clickable}
                     onClick={() => handleClick(table)}
                     className={cn(
-                      "border-2 flex flex-col items-center justify-center gap-0.5",
+                      "border-2 flex flex-col items-center justify-center gap-0.5 disabled:cursor-not-allowed disabled:opacity-60",
                       shapeClass(table.capacity),
                       getStyle(table),
                     )}
