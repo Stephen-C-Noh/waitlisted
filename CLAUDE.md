@@ -45,7 +45,7 @@ Wrap every POS-writing route, the login route and the waitlist create/list/statu
 
 ### Polling cadence
 
-`useWaitlistPolling` = 10 s (guest status page). `useDashboardPolling` runs two queries: waitlist 5 s, tables 15 s. Use TanStack Query `refetchInterval`.
+There are no polling hooks: queries set TanStack Query `refetchInterval` inline. Guest status page (`waitlist/[token]/status/page.tsx`) 10 s; confirmation page (`ConfirmationClient.tsx`) 30 s; `DashboardClient.tsx` waitlist 5 s, tables 15 s.
 
 ### PIN-only login (no username)
 

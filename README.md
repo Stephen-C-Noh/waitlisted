@@ -132,9 +132,10 @@ A short scripted flow that exercises every piece of the system:
 4. **Staff** opens http://localhost:3000/admin/login in a second browser
    window. PIN `1234`. The dashboard shows the new waitlist entry.
 5. **Staff** uses the seat action on the entry and picks an available
-   table. The table turns OCCUPIED; the guest's status page switches to
-   "Entry Unavailable: This entry has been seated" on its next poll;
-   remaining guests' wait estimates are recalculated on theirs.
+   table. The table turns OCCUPIED; within about 20 seconds (10 s poll,
+   then the query's retries) the guest's status page switches to "Entry
+   Unavailable: This entry has been seated"; remaining guests' wait
+   estimates are recalculated on their next poll.
 6. **Staff** opens the seated guest's pre-order, taps **Fire to Kitchen**,
    and re-enters their PIN (the second-PIN gate prevents accidental fires).
 7. **Kitchen Display** at http://localhost:5173/kds (log in with PIN
@@ -145,8 +146,10 @@ Spring Boot state machine, which writes an `OrderFired` event to its outbox
 in the same transaction. A relay publishes the event to Kafka, and the
 POS's Kafka consumer pushes the order over WebSocket (`/topic/orders`) to
 the Kitchen Display, a separate React frontend. Measured on the local
-stack: 22.5 ms median, 35 ms worst from fire to the card on screen
-(`restaurant-pos/docs/perf/kds-latency.md`). If Kafka is down, the fire
+stack from the POS fire commit to the card on screen: 22.5 ms median,
+35 ms worst (`restaurant-pos/docs/perf/kds-latency.md`). That excludes the
+Waitlisted side (the Next.js route, the PIN check and the POS create and
+fire calls). If Kafka is down, the fire
 still succeeds and the ticket appears once Kafka is back.
 
 ---
@@ -162,8 +165,9 @@ still succeeds and the ticket appears once Kafka is back.
   POS) the dashboard disables Seat, Fire and table-status actions.
 - Prisma owns three new tables (`waitlist_entries`, `pre_orders`,
   `pre_order_items`) and introspects the rest of the schema from the POS.
-- Two JWTs are issued on login: the Next.js staff token (signed with `jose`)
-  and a separate token for the Spring Boot API. Both cookies are
+- Login sets the Next.js staff token (signed with `jose`) and, when Spring
+  Boot is reachable, a separate token for the Spring Boot API; without it,
+  seat, table status and fire fail (see Troubleshooting). Both cookies are
   `HttpOnly; SameSite=Strict`.
 
 Full design docs live under `Plans/`. The authoritative design system
@@ -283,8 +287,9 @@ Most often because Postgres wasn't ready in time on an old-cache start.
 `Connection refused` - restart with `docker compose restart backend`.
 
 **Seating or firing fails with "POS unavailable" or "POS session expired"**
-Login works without the POS: the Next.js login route also asks Spring Boot
-for a POS token, and if the backend is down it signs you in without one.
+Login works while the Spring Boot backend is down (Postgres must be up):
+the Next.js login route also asks Spring Boot for a POS token, and if the
+backend is unreachable it signs you in without one.
 Seating, table status and firing then fail (503 "POS unavailable" while the
 backend is unreachable, 502 "POS session expired - sign out and back in"
 when the POS token is missing or expired). Start the backend, wait for
