@@ -6,7 +6,7 @@ import { createOrder, fireOrder, extractPosToken, posFailure } from "@/lib/sprin
 
 /**
  * POST: fire a pre-order to the kitchen.
- * Requires staff session + a second PIN verification.
+ * Requires staff session + a second PIN verification (the session user's own PIN).
  * Calls Spring Boot POST /api/orders + POST /api/orders/{id}/fire.
  */
 export async function POST(request: Request) {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Second PIN gate
+  // Second PIN gate: only the logged-in user's own PIN passes
   const fireAuth = await verifyPinForFire(parsed.data.pin, session);
   if (!fireAuth) {
     return NextResponse.json({ error: "Invalid PIN" }, { status: 401 });

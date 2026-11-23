@@ -170,7 +170,8 @@ Full design docs live under `Plans/`. The authoritative design system
    pre-order. That's a distinct dashboard action.
 2. **Firing requires a second PIN.** Before the fire request is sent to
    Spring Boot, the staff member re-enters their 4-digit PIN. The PIN is
-   re-verified server-side and the authorizing user's ID is recorded in
+   re-verified server-side against the logged-in user's own PIN (another
+   staff member's PIN is rejected) and the user's ID is recorded in
    `pre_orders.fired_by_user_id` for audit.
 
 These exist so a kitchen ticket can't be created without a human
