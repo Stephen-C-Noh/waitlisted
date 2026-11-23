@@ -198,4 +198,15 @@ describe("POST /api/orders/from-preorder", () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
   });
+
+  it("checks the PIN against the logged-in session user", async () => {
+    stubPos({
+      "POST /api/orders": { status: 201, body: { id: "pos-1" } },
+      "POST /api/orders/pos-1/fire": { status: 200 },
+    });
+
+    await fire();
+
+    expect(verifyPinForFire).toHaveBeenCalledWith("1234", SESSION);
+  });
 });
