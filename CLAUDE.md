@@ -23,7 +23,7 @@ Note: the app is named **Waitlisted**. The older `implementation-plan.md` refers
 
 Next.js **16.2.1** (App Router) + TypeScript 5 + Tailwind **v4** (CSS-first via `@theme` in `globals.css`, no `tailwind.config.*`) + **Prisma 7** with `@prisma/adapter-pg` + PostgreSQL 16 + TanStack Query v5 + Zustand v5 + Framer Motion v12 + `jose` v6 + `bcryptjs` v3 + Zod v4. Middleware file is **`proxy.ts`** (Next.js 16), not `middleware.ts`.
 
-## Architecture (once scaffolded)
+## Architecture
 
 Hybrid Next.js + Spring Boot system sharing one Postgres database:
 
@@ -66,7 +66,7 @@ The app runs on a touch-only tablet. `useIdleDetection` listens to **`touchstart
 
 ### Wait time algorithm
 
-Lives in `src/lib/wait-time.ts` (to be created). Constants reflect high-end dining: `AVG_DINING_DURATION=90`, `TABLE_TURNOVER_BUFFER=10`, `avgRemainingTime=50`. Output is clamped `[5, 150]`, rounded to nearest 5, and displayed as a ±5 range. See plan §8 for the full formula.
+Lives in `src/lib/wait-time.ts`. Constants reflect high-end dining: `AVG_DINING_DURATION=90`, `TABLE_TURNOVER_BUFFER=10`, `avgRemainingTime=50`. Output is clamped `[5, 150]`, rounded to nearest 5, and displayed as a ±5 range. See plan §8 for the full formula.
 
 ## Bootstrapping commands (per the plan)
 
@@ -80,4 +80,4 @@ Migrations: `prisma/migrations/` holds only the three waitlist tables; on a fres
 
 Required env (`.env.local`): `DATABASE_URL` (shared POS Postgres), `JWT_SECRET`, `SPRING_BOOT_URL=http://localhost:8090`, `NEXT_PUBLIC_BASE_URL`, `SMS_PROVIDER=console`.
 
-No lint/test/run commands exist yet — add them here once the Next.js project is scaffolded.
+Commands: `npm run dev` (dev server; it rewrites `AGENTS.md`, revert that), `npm test` (Vitest), `npm run lint`, `npx tsc --noEmit`.
