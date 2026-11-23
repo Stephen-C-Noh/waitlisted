@@ -26,4 +26,15 @@ describe("withMetrics", () => {
 
     expect(await countFor("/api/test", "404")).toBe(1);
   });
+
+  it("records 500 and rethrows when the handler throws", async () => {
+    const boom = new Error("boom");
+    const handler = withMetrics("/api/test", async () => {
+      throw boom;
+    });
+
+    await expect(handler(new Request("http://localhost/api/test"), undefined)).rejects.toBe(boom);
+
+    expect(await countFor("/api/test", "500")).toBe(1);
+  });
 });
