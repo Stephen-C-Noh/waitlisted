@@ -49,4 +49,14 @@ describe("GET /api/metrics without METRICS_TOKEN", () => {
     expect(res.status).toBe(404);
     expect(await res.text()).not.toContain("process_cpu");
   });
+
+  it("stays open outside production (local dev, compose Prometheus)", async () => {
+    vi.stubEnv("METRICS_TOKEN", "");
+    vi.stubEnv("NODE_ENV", "development");
+
+    const res = await scrape();
+
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain("process_cpu");
+  });
 });
