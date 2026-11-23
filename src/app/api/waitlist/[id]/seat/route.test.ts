@@ -15,6 +15,8 @@ vi.mock("@/lib/auth", () => ({ getStaffSession: vi.fn() }));
 
 import { prisma } from "@/lib/prisma";
 import { getStaffSession } from "@/lib/auth";
+import { httpDuration } from "@/lib/metrics";
+import { countFor } from "@/lib/metrics-test-utils";
 import { POST } from "./route";
 
 const ENTRY_ID = "11111111-1111-1111-1111-111111111111";
@@ -70,6 +72,15 @@ function stubPos(routes: Record<string, { status: number; body?: unknown }>) {
 }
 
 describe("POST /api/waitlist/[id]/seat", () => {
+  it("records a POS-down 503 under the route template", async () => {
+    httpDuration.reset();
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+    await seat();
+
+    expect(await countFor("/api/waitlist/[id]/seat", "503")).toBe(1);
+  });
+
   it("returns 503 and changes nothing when the POS is unreachable", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
 
