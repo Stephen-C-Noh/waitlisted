@@ -15,20 +15,20 @@ Note: the app is named **Waitlisted**. The older `implementation-plan.md` refers
 ## Layout
 
 - `Plans/implementation-plan.md` — full implementation plan for the Waitlisted app. Read this before making architectural decisions; it dictates directory structure, API routes, DB schema additions, auth flow, and phase ordering.
-- `Guide/Database/V1`–`V6` — Flyway migrations from the sibling `restaurant-pos` Spring Boot project. These define the **shared PostgreSQL schema** this app reads from and writes to. `V1` = core POS tables (users, menu_items, tables, orders), `V5` = seeded staff with bcrypt(cost=4) PIN hashes, `V6` = seeded tables across zones.
+- `Guide/Database/V1`–`V6` — Flyway migrations from the sibling `restaurant-pos` Spring Boot project. These define the **shared PostgreSQL schema** this app reads from and writes to. `V1` = core POS tables (users, menu_items, tables, orders), `V5` = seeded staff with bcrypt(cost=4) PIN hashes, `V6` = seeded tables across zones. This is an old reference copy: the POS is ahead (V7 payments, V8 outbox relay columns, V9 order cancel, V10 kitchen PIN), so read `restaurant-pos/backend/src/main/resources/db/migration/` for the current schema.
 - `Guide/Design/DESIGN.md` — "Digital Maître D'" design system. Non-negotiable rules: no 1px dividers (use tonal background shifts), no pure white (use `on_surface #e5e2e1`), gold `#e9c176` reserved for "moment of truth" CTAs, tonal layering instead of shadow elevation levels.
 - `Guide/Design/*/code.html` — five HTML mockups. Each includes the **authoritative Tailwind token map** in an inline `<script>` at the top; `customer_waitlist_entry/code.html` lines 15–62 is the canonical source. All five mockups share the same tokens.
 
 ## Stack
 
-Next.js **16.2.1** (App Router) + TypeScript 5 + Tailwind **v4** (CSS-first via `@theme` in `globals.css`, no `tailwind.config.*`) + **Prisma 7** with `@prisma/adapter-pg` + PostgreSQL 16 + TanStack Query v5 + Zustand v5 + Framer Motion v12 + `jose` v6 + `bcryptjs` v3 + Zod v4. Middleware file is **`proxy.ts`** (Next.js 16), not `middleware.ts`.
+Next.js **16** (App Router, `^16.4.6` in `package.json`) + TypeScript 5 + Tailwind **v4** (CSS-first via `@theme` in `globals.css`, no `tailwind.config.*`) + **Prisma 7** with `@prisma/adapter-pg` + PostgreSQL 16 + TanStack Query v5 + Zustand v5 + Framer Motion v12 + `jose` v6 + `bcryptjs` v3 + Zod v4. Middleware file is **`proxy.ts`** (Next.js 16), not `middleware.ts`.
 
 ## Architecture
 
 Hybrid Next.js + Spring Boot system sharing one Postgres database:
 
 - **Reads** (menu, tables, waitlist) go directly through **Prisma** for speed.
-- **Writes with business logic** (table status changes on seat, create+fire order) go through the **Spring Boot POS** at `http://localhost:8090` so its state machine, Kafka events, and WebSocket broadcasts fire.
+- **Writes with business logic** (table status changes on seat, create+fire order) go through the **Spring Boot POS** at `http://localhost:8090` so its state machine and outbox run: the fire writes an `OrderFired` event to the outbox in the same transaction, a relay publishes it to Kafka, and the POS's Kafka consumer pushes the order to the Kitchen Display over WebSocket (`/topic/orders`).
 - **Only the POS changes POS-owned tables** (`tables`, `orders`, `users`, ...). If a POS call fails (503 unreachable, POS 4xx passed through, 502 on POS 5xx/auth) the route returns the error via `posFailure()` and writes nothing; there is **no Prisma fallback**. `src/lib/no-pos-writes.test.ts` fails on any `prisma.<pos table>.create/update/...` or `$executeRaw` under `src/`.
 - **Cloud mode** (`POS_INTEGRATION_ENABLED=false`, no POS deployed): `DashboardPage` reads the flag on the server (`isPosIntegrationEnabled()`) and passes `posEnabled` down; Seat, Fire and table-status controls are disabled with the note in `src/lib/pos-mode.ts`. The 503 from the API stays as the safety net.
 - Prisma introspects existing POS tables (`prisma db pull`) and owns only three **new** tables: `waitlist_entries`, `pre_orders`, `pre_order_items`. FKs to POS tables (`tables`, `users`, `menu_items`) are enforced at app level only — do not add Prisma relations to introspected models or migrations will conflict.
