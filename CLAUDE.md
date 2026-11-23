@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Status
 
-This repo currently contains **only specs and design assets** — no application code, no `package.json`, no build system yet. The Next.js app described below has not been scaffolded.
+The Next.js app is built and running (`src/`, `npm run dev`, Vitest via `npm test`). `Plans/` and `Guide/` hold the original specs and design assets; where they disagree with the code, the code wins.
 
 **Source-of-truth order for specs** (newer overrides older):
 1. `Plans/waitlisted-project-description.md` — current stack, routes, auth model (authoritative)
