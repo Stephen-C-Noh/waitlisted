@@ -132,7 +132,7 @@ export function updateTableStatus(
 export function createOrder(
   payload: {
     tableId: string;
-    userId: string;
+    serverId: string;
     items: {
       menuItemId: string;
       quantity: number;

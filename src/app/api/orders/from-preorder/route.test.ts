@@ -209,4 +209,17 @@ describe("POST /api/orders/from-preorder", () => {
 
     expect(verifyPinForFire).toHaveBeenCalledWith("1234", SESSION);
   });
+
+  it("sends the session user as serverId (and no userId) to the POS create call", async () => {
+    const fetchMock = stubPos({
+      "POST /api/orders": { status: 201, body: { id: "pos-1" } },
+      "POST /api/orders/pos-1/fire": { status: 200 },
+    });
+
+    await fire();
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1]?.body as string);
+    expect(body.serverId).toBe(SESSION.userId);
+    expect(body).not.toHaveProperty("userId");
+  });
 });

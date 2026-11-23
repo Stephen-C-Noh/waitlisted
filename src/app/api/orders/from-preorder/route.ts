@@ -83,7 +83,7 @@ export async function POST(request: Request) {
     const createRes = await createOrder(
       {
         tableId,
-        userId: fireAuth.userId,
+        serverId: session.userId,
         items: preOrder.items.map((i) => ({
           menuItemId: i.menu_item_id,
           quantity: i.quantity,
