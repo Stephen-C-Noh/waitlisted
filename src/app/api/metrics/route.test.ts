@@ -38,3 +38,15 @@ describe("GET /api/metrics with METRICS_TOKEN set", () => {
     expect(await res.text()).toContain("process_cpu");
   });
 });
+
+describe("GET /api/metrics without METRICS_TOKEN", () => {
+  it("returns 404 in production (fail closed)", async () => {
+    vi.stubEnv("METRICS_TOKEN", "");
+    vi.stubEnv("NODE_ENV", "production");
+
+    const res = await scrape();
+
+    expect(res.status).toBe(404);
+    expect(await res.text()).not.toContain("process_cpu");
+  });
+});

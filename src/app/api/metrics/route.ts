@@ -11,6 +11,9 @@ function authorized(request: Request, token: string): boolean {
 
 export async function GET(request: Request) {
     const token = process.env.METRICS_TOKEN;
+    if (!token && process.env.NODE_ENV === "production") {
+        return new Response(null, { status: 404 });
+    }
     if (token && !authorized(request, token)) {
         return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
