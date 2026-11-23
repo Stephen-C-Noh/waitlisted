@@ -20,4 +20,12 @@ describe("GET /api/metrics with METRICS_TOKEN set", () => {
     expect(res.status).toBe(401);
     expect(await res.text()).not.toContain("http_request_duration_seconds");
   });
+
+  it("returns 401 for a wrong token of the same or a different length", async () => {
+    vi.stubEnv("METRICS_TOKEN", "s3cret");
+
+    expect((await scrape("Bearer wr0ng!")).status).toBe(401);
+    expect((await scrape("Bearer s3cret-but-longer")).status).toBe(401);
+    expect((await scrape("s3cret")).status).toBe(401);
+  });
 });
