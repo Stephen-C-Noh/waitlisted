@@ -239,6 +239,14 @@ Guide/
 | `npm run lint` | ESLint                   |
 | `npm run db:setup` | First-time database setup (waitlist tables) |
 
+## Metrics
+
+`GET /api/metrics` serves Prometheus metrics (request duration per route
+template and status, plus Node defaults). Set `METRICS_TOKEN` to require
+`Authorization: Bearer <token>` (401 otherwise). With no token it is open
+outside production and returns 404 in production. Prometheus sends the token
+with `authorization: { credentials: <token> }` in the scrape config.
+
 ## Design system
 
 Non-negotiable rules from `Guide/Design/DESIGN.md`:

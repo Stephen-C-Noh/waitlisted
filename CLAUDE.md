@@ -39,6 +39,10 @@ Hybrid Next.js + Spring Boot system sharing one Postgres database:
 - `(staff)` — `/admin/login`, `/admin/dashboard`
 - `proxy.ts` guards `/admin/*` by verifying the staff JWT cookie.
 
+### Metrics
+
+Wrap every API route handler in `withMetrics("<route template>", handler)` from `src/lib/metrics.ts`, using the template (`/api/waitlist/[id]/seat`), never the concrete URL, so the `route` label stays bounded.
+
 ### Polling cadence
 
 `useWaitlistPolling` = 10 s (guest status page). `useDashboardPolling` runs two queries: waitlist 5 s, tables 15 s. Use TanStack Query `refetchInterval`.
@@ -78,6 +82,6 @@ npx prisma db pull                                    # introspect POS schema fi
 
 Migrations: `prisma/migrations/` holds only the three waitlist tables; on a fresh database run `npm run db:setup` after the POS stack is up (plain `migrate deploy` fails with P3005 because the POS tables make the schema non-empty); after that, `npx prisma migrate deploy` applies newer migrations. **Never run `prisma migrate dev`**: the schema includes introspected POS tables that are not in the migration history, so `dev` would try to create or reset them. Write new migrations by hand or with `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script`, keeping only the waitlist statements.
 
-Required env (`.env.local`): `DATABASE_URL` (shared POS Postgres), `JWT_SECRET`, `SPRING_BOOT_URL=http://localhost:8090`, `NEXT_PUBLIC_BASE_URL`, `SMS_PROVIDER=console`.
+Required env (`.env.local`): `DATABASE_URL` (shared POS Postgres), `JWT_SECRET`, `SPRING_BOOT_URL=http://localhost:8090`, `NEXT_PUBLIC_BASE_URL`, `SMS_PROVIDER=console`. Optional: `METRICS_TOKEN` protects `GET /api/metrics`: set, the request must send `Authorization: Bearer <token>` (401 otherwise, constant-time compare); unset, the endpoint is open outside production and returns 404 in production. Prometheus sends it with `authorization: { credentials: <token> }` in its scrape config.
 
 Commands: `npm run dev` (dev server; it rewrites `AGENTS.md`, revert that), `npm test` (Vitest), `npm run lint`, `npx tsc --noEmit`.
