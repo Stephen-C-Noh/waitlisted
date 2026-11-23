@@ -86,7 +86,7 @@ describe("POST /api/orders/from-preorder", () => {
     expect(update).not.toHaveBeenCalled();
   });
 
-  it("returns 502, keeps the POS order id and does not mark FIRED when fire fails after create", async () => {
+  it("returns 502, keeps the POS order id and its creator and does not mark FIRED when fire fails after create", async () => {
     stubPos({
       "POST /api/orders": { status: 201, body: { id: "pos-1" } },
       "POST /api/orders/pos-1/fire": { status: 500, body: {} },
@@ -97,7 +97,7 @@ describe("POST /api/orders/from-preorder", () => {
     expect(res.status).toBe(502);
     expect(update).toHaveBeenCalledWith({
       where: { id: PRE_ORDER_ID },
-      data: { fired_order_id: "pos-1" },
+      data: { fired_order_id: "pos-1", fired_by_user_id: "u1" },
     });
     expect(update.mock.calls.some(([a]) => (a.data as { status?: string }).status === "FIRED")).toBe(false);
   });

@@ -100,7 +100,9 @@ export async function POST(request: Request) {
     firedOrderId = createRes.data.id;
     await prisma.pre_orders.update({
       where: { id: preOrder.id },
-      data: { fired_order_id: firedOrderId },
+      // The creator is the POS order's serverId; save it now so a retry by
+      // someone else cannot make fired_by_user_id disagree with the POS.
+      data: { fired_order_id: firedOrderId, fired_by_user_id: session.userId },
     });
   }
 
