@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   }
 
   // Second PIN gate
-  const fireAuth = await verifyPinForFire(parsed.data.pin);
+  const fireAuth = await verifyPinForFire(parsed.data.pin, session);
   if (!fireAuth) {
     return NextResponse.json({ error: "Invalid PIN" }, { status: 401 });
   }
