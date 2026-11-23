@@ -28,4 +28,13 @@ describe("GET /api/metrics with METRICS_TOKEN set", () => {
     expect((await scrape("Bearer s3cret-but-longer")).status).toBe(401);
     expect((await scrape("s3cret")).status).toBe(401);
   });
+
+  it("returns 200 with metrics for the right bearer token", async () => {
+    vi.stubEnv("METRICS_TOKEN", "s3cret");
+
+    const res = await scrape("Bearer s3cret");
+
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain("process_cpu");
+  });
 });
