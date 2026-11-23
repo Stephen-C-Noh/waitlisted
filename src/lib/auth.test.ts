@@ -35,4 +35,8 @@ describe("verifyPinForFire", () => {
   it("returns the session when the PIN is the logged-in user's own", async () => {
     expect(await verifyPinForFire("9012", sessionOf("u1"))).toEqual(sessionOf("u1"));
   });
+
+  it("returns null when the PIN only matches a different active user", async () => {
+    expect(await verifyPinForFire("3456", sessionOf("u1"))).toBeNull();
+  });
 });
