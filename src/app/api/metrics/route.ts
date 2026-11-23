@@ -1,12 +1,18 @@
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { register } from "@/lib/metrics";
 
 export const dynamic = "force-dynamic";
 
+const digest = (s: string) => createHash("sha256").update(s).digest();
+
 function authorized(request: Request, token: string): boolean {
-    const given = Buffer.from(request.headers.get("authorization") ?? "");
-    const expected = Buffer.from(`Bearer ${token}`);
-    return given.length === expected.length && timingSafeEqual(given, expected);
+    const header = request.headers.get("authorization") ?? "";
+    const space = header.indexOf(" ");
+    const scheme = space === -1 ? header : header.slice(0, space);
+    const given = space === -1 ? "" : header.slice(space + 1);
+    // Equal-length digests: no length branch, so timing reveals nothing about the token.
+    const tokenMatches = timingSafeEqual(digest(given), digest(token));
+    return scheme.toLowerCase() === "bearer" && tokenMatches;
 }
 
 export async function GET(request: Request) {

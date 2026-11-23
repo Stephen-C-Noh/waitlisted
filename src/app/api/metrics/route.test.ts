@@ -27,6 +27,7 @@ describe("GET /api/metrics with METRICS_TOKEN set", () => {
     expect((await scrape("Bearer wr0ng!")).status).toBe(401);
     expect((await scrape("Bearer s3cret-but-longer")).status).toBe(401);
     expect((await scrape("s3cret")).status).toBe(401);
+    expect((await scrape("Bearer s3cret extra")).status).toBe(401);
   });
 
   it("returns 200 with metrics for the right bearer token", async () => {
@@ -36,6 +37,13 @@ describe("GET /api/metrics with METRICS_TOKEN set", () => {
 
     expect(res.status).toBe(200);
     expect(await res.text()).toContain("process_cpu");
+  });
+
+  it("accepts the bearer scheme in any case (RFC 7235)", async () => {
+    vi.stubEnv("METRICS_TOKEN", "s3cret");
+
+    expect((await scrape("bearer s3cret")).status).toBe(200);
+    expect((await scrape("BEARER s3cret")).status).toBe(200);
   });
 
   it("ignores whitespace around the configured token (secret files end in a newline)", async () => {
