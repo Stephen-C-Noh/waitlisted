@@ -5,8 +5,8 @@ import { NextResponse } from "next/server";
  *
  * Write operations (table status, orders) go through Spring Boot so its
  * state machine, Kafka events, and WebSocket broadcasts fire correctly.
- * Failures come back as PosError. The fire route turns them into HTTP
- * responses with posFailure(). No route falls back to Prisma writes for POS
+ * Failures come back as PosError. Every POS-writing route (fire, seat, table
+ * status) turns them into HTTP responses with posFailure(). No route falls back to Prisma writes for POS
  * tables: if the POS call fails (including the 8 s timeout), nothing changes.
  */
 
