@@ -61,7 +61,11 @@ export function PreOrderModal({ entryId, guestName, posEnabled, onClose }: Props
       if (!res.ok) {
         const err = await res.json().catch(() => null);
         if (res.status === 401) {
-          setPinError("Invalid PIN — please try again");
+          setPinError(
+            err?.error === "Invalid PIN"
+              ? "Invalid PIN — please try again"
+              : "Session expired — sign in again",
+          );
           return;
         }
         setPinError(err?.error ?? "Failed to fire order");
