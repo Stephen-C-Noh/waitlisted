@@ -158,7 +158,8 @@ export function DashboardClient({ staffName, staffRole, posEnabled }: Props) {
         throw new Error(data?.error ?? "Failed to update table");
       }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tables"] }),
+    // Refetch on failure too: a POS 409 usually means the table changed elsewhere.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["tables"] }),
   });
 
   const handleNotify = useCallback(
@@ -321,7 +322,7 @@ export function DashboardClient({ staffName, staffRole, posEnabled }: Props) {
               </p>
               <TableFloorMap
                 mode="manage"
-                disabled={!posEnabled}
+                disabled={!posEnabled || tableStatusMutation.isPending}
                 tables={tables}
                 onStatusChange={(id, status) =>
                   tableStatusMutation.mutate({ id, status })
@@ -528,7 +529,7 @@ export function DashboardClient({ staffName, staffRole, posEnabled }: Props) {
             </div>
             <TableFloorMap
               mode="manage"
-              disabled={!posEnabled}
+              disabled={!posEnabled || tableStatusMutation.isPending}
               tables={tables}
               onStatusChange={(id, status) =>
                 tableStatusMutation.mutate({ id, status })
