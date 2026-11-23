@@ -25,14 +25,14 @@ Kafka events, and WebSocket broadcasts to the Kitchen Display.
 | ![Guest confirmation](docs/images/waitlisted-guest-confirmation-qr.jpg) | ![Staff dashboard](docs/images/waitlisted-staff-dashboard.jpg) |
 | Confirmation screen with a QR code guests scan to browse the menu and pre-order | Concierge Overview: the live waitlist queue alongside the floor map |
 | ![Fire PIN gate](docs/images/waitlisted-fire-pin-verification.jpg) | ![Realtime kitchen ticket](docs/images/waitlisted-realtime-kitchen-ticket.jpg) |
-| Second-PIN confirmation gate required before a pre-order reaches the kitchen | The fired order on the `restaurant-pos` Kitchen Display in under a second, via the Kafka to WebSocket pipeline |
+| Second-PIN confirmation gate required before a pre-order reaches the kitchen | The fired order on the `restaurant-pos` Kitchen Display, delivered through the POS outbox, Kafka and WebSocket |
 
 ---
 
 ## Running the demo
 
-You will need both repos cloned, Docker Desktop running, and Node.js 20+
-installed. The backend stack is containerized; this Next.js app runs via
+You will need both repos cloned, Docker Desktop running, and Node.js 22
+(see `.nvmrc`) installed. The backend stack is containerized; this Next.js app runs via
 `npm`.
 
 ### 1. Clone both repos side by side
@@ -104,7 +104,7 @@ new migrations by hand or with `npx prisma migrate diff`.
 | http://localhost:3000                 | Slideshow / kiosk home - tap anywhere           |
 | http://localhost:3000/waitlist        | Guest entry form                                |
 | http://localhost:3000/admin/login     | Staff dashboard (requires PIN)                  |
-| http://localhost:5173                 | POS frontend + **Kitchen Display**              |
+| http://localhost:5173/kds             | **Kitchen Display** (POS frontend, kitchen PIN) |
 | http://localhost:5050                 | pgAdmin (DB GUI, optional)                      |
 | http://localhost:8080                 | Kafka UI (event stream, optional)               |
 
@@ -117,8 +117,8 @@ new migrations by hand or with `npx prisma migrate diff`.
 | 9012 | server1  | SERVER  |
 | 3456 | server2  | SERVER  |
 
-The KITCHEN role has no PIN and cannot log in. Login is for front-of-house
-only.
+The KITCHEN role cannot log in to Waitlisted (front-of-house only). The
+Kitchen Display in the POS frontend logs in as `kitchen1` with PIN `7890`.
 
 ### 6. End-to-end walkthrough
 
@@ -131,17 +131,26 @@ A short scripted flow that exercises every piece of the system:
 3. **Guest** taps "Browse Menu" and adds a few items to a pre-order.
 4. **Staff** opens http://localhost:3000/admin/login in a second browser
    window. PIN `1234`. The dashboard shows the new waitlist entry.
-5. **Staff** drags the entry onto an available table, or uses the seat
-   action. The table turns OCCUPIED; the guest's status page flips to
-   "Seated"; remaining guests' wait-times shorten.
+5. **Staff** uses the seat action on the entry and picks an available
+   table. The table turns OCCUPIED; within about 20 seconds (10 s poll,
+   then the query's retries) the guest's status page switches to "Entry
+   Unavailable: This entry has been seated"; remaining guests' wait
+   estimates are recalculated on their next poll.
 6. **Staff** opens the seated guest's pre-order, taps **Fire to Kitchen**,
    and re-enters their PIN (the second-PIN gate prevents accidental fires).
-7. **Kitchen Display** at http://localhost:5173 shows the new ticket in
-   real-time via the Kafka → WebSocket pipeline.
+7. **Kitchen Display** at http://localhost:5173/kds (log in with PIN
+   `7890`) shows the new ticket.
 
-Step 7 is the architectural payoff: a change in the Next.js app propagates
-through the Spring Boot state machine, out as a Kafka event, and into a
-separate React frontend - all in under a second.
+Step 7 is the architectural payoff: the fire request goes through the
+Spring Boot state machine, which writes an `OrderFired` event to its outbox
+in the same transaction. A relay publishes the event to Kafka, and the
+POS's Kafka consumer pushes the order over WebSocket (`/topic/orders`) to
+the Kitchen Display, a separate React frontend. Measured on the local
+stack from the POS fire commit to the card on screen: 22.5 ms median,
+35 ms worst (`restaurant-pos/docs/perf/kds-latency.md`). That excludes the
+Waitlisted side (the Next.js route, the PIN check and the POS create and
+fire calls). If Kafka is down, the fire
+still succeeds and the ticket appears once Kafka is back.
 
 ---
 
@@ -156,8 +165,9 @@ separate React frontend - all in under a second.
   POS) the dashboard disables Seat, Fire and table-status actions.
 - Prisma owns three new tables (`waitlist_entries`, `pre_orders`,
   `pre_order_items`) and introspects the rest of the schema from the POS.
-- Two JWTs are issued on login: the Next.js staff token (signed with `jose`)
-  and a separate token for the Spring Boot API. Both cookies are
+- Login sets the Next.js staff token (signed with `jose`) and, when Spring
+  Boot is reachable, a separate token for the Spring Boot API; without it,
+  seat, table status and fire fail (see Troubleshooting). Both cookies are
   `HttpOnly; SameSite=Strict`.
 
 Full design docs live under `Plans/`. The authoritative design system
@@ -211,7 +221,7 @@ src/
     (staff)/        PIN-gated admin routes
     api/            Route handlers
   components/       UI components
-  hooks/            useIdleDetection, polling hooks
+  hooks/            useIdleDetection
   lib/
     auth.ts                 PIN verification + JWT signing
     prisma.ts               Prisma client singleton
@@ -225,7 +235,8 @@ prisma/
   migrations/       Waitlist tables only (never `prisma migrate dev`)
 Plans/              Design docs (source of truth)
 Guide/
-  Database/V1–V6    Flyway migrations from the POS project (reference copy)
+  Database/V1–V6    Old reference copy of the POS Flyway migrations (the POS
+                    is ahead; its own repo is the source of truth)
   Design/           Design system + HTML mockups
 ```
 
@@ -237,6 +248,7 @@ Guide/
 | `npm run build` | Production build         |
 | `npm run start` | Run the production build |
 | `npm run lint` | ESLint                   |
+| `npm test`     | Vitest                   |
 | `npm run db:setup` | First-time database setup (waitlist tables) |
 
 ## Metrics
@@ -246,8 +258,9 @@ template and status for the waitlist create/list/status, seat, table status,
 fire and login routes, plus Node defaults. Set `METRICS_TOKEN` to require
 `Authorization: Bearer <token>` (401 otherwise). With no token it is open
 outside production and returns 404 in production, which includes the Docker
-image (`NODE_ENV=production`), so any containerized deploy needs the token. Prometheus sends the token
-with `authorization: { credentials: <token> }` in the scrape config.
+image (`NODE_ENV=production`), so any containerized deploy needs the token.
+Prometheus sends the token with `authorization: { credentials: <token> }` in
+the scrape config.
 
 ## Design system
 
@@ -273,8 +286,11 @@ Most often because Postgres wasn't ready in time on an old-cache start.
 `docker compose logs backend` will show `UnknownHostException` or
 `Connection refused` - restart with `docker compose restart backend`.
 
-**PIN login returns "Invalid PIN" for a known-correct PIN**
-Make sure the backend stack is up and healthy. The Next.js login route
-also calls Spring Boot to mint the second POS token; if that call fails
-silently, seating and firing won't reach the state machine. Check
-`docker compose logs backend` and the browser network tab.
+**Seating or firing fails with "POS unavailable" or "POS session expired"**
+Login works while the Spring Boot backend is down (Postgres must be up):
+the Next.js login route also asks Spring Boot for a POS token, and if the
+backend is unreachable it signs you in without one.
+Seating, table status and firing then fail (503 "POS unavailable" while the
+backend is unreachable, 502 "POS session expired - sign out and back in"
+when the POS token is missing or expired). Start the backend, wait for
+`/actuator/health` to report `UP`, then log out and back in.
