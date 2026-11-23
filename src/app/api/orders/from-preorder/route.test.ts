@@ -14,6 +14,8 @@ import { POST } from "./route";
 
 const PRE_ORDER_ID = "11111111-1111-1111-1111-111111111111";
 
+const SESSION = { userId: "u1", username: "mgr", fullName: "Mgr", role: "MANAGER" };
+
 const findUnique = vi.mocked(prisma.pre_orders.findUnique);
 const update = vi.mocked(prisma.pre_orders.update);
 
@@ -43,12 +45,8 @@ function fire() {
 beforeEach(() => {
   vi.stubEnv("POS_INTEGRATION_ENABLED", "true");
   vi.spyOn(console, "error").mockImplementation(() => {});
-  vi.mocked(getStaffSession).mockResolvedValue({
-    userId: "u0", username: "host", fullName: "Host", role: "HOST",
-  } as never);
-  vi.mocked(verifyPinForFire).mockResolvedValue({
-    userId: "u1", username: "mgr", fullName: "Mgr", role: "MANAGER",
-  } as never);
+  vi.mocked(getStaffSession).mockResolvedValue(SESSION as never);
+  vi.mocked(verifyPinForFire).mockResolvedValue(SESSION as never);
   findUnique.mockResolvedValue(preOrder() as never);
   update.mockImplementation((async ({ data }: { data: Record<string, unknown> }) => ({
     status: data.status ?? "CONFIRMED",
@@ -186,6 +184,18 @@ describe("POST /api/orders/from-preorder", () => {
     expect(await res.json()).toEqual({
       error: "POS session expired - sign out and back in",
     });
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 Invalid PIN and touches neither the POS nor the DB when the PIN is wrong", async () => {
+    vi.mocked(verifyPinForFire).mockResolvedValue(null);
+    const fetchMock = stubPos({});
+
+    const res = await fire();
+
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "Invalid PIN" });
+    expect(fetchMock).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
   });
 });
