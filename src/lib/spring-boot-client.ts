@@ -137,7 +137,6 @@ export function createOrder(
       menuItemId: string;
       quantity: number;
       specialInstructions: string | null;
-      unitPrice: number;
     }[];
   },
   posToken?: string,

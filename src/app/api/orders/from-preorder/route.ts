@@ -44,7 +44,6 @@ export async function POST(request: Request) {
           menu_item_id: true,
           quantity: true,
           special_instructions: true,
-          unit_price: true,
         },
       },
       waitlist_entry: {
@@ -88,7 +87,6 @@ export async function POST(request: Request) {
           menuItemId: i.menu_item_id,
           quantity: i.quantity,
           specialInstructions: i.special_instructions,
-          unitPrice: Number(i.unit_price),
         })),
       },
       posToken,
